@@ -1,6 +1,11 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+const fs = window.require('fs');
+
+function doNodeStuff() {
+  fs.writeFileSync("lol.txt", "lol");
+}
 
 function App() {
   return (
@@ -16,8 +21,9 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          Learn React or not
         </a>
+        <button onClick={doNodeStuff}>Lol</button>
       </header>
     </div>
   );
