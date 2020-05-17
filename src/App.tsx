@@ -1,7 +1,7 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-const fs = window.require('fs');
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+const fs = window.require("fs");
 
 function doNodeStuff() {
   fs.writeFileSync("lol.txt", "lol");
