@@ -1,8 +1,12 @@
 import React from "react";
+const { remote } = window.require("electron");
 const fs = window.require("fs");
+const path = window.require("path");
 
 function doNodeStuff() {
-  fs.writeFileSync("lol.txt", "lol");
+  const userDataPath = remote.app.getPath("userData");
+  const configPath = path.join(userDataPath, "config.json");
+  fs.writeFileSync(configPath, "{}");
 }
 
 function App() {
