@@ -1,11 +1,16 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import "./tailwind.generated.css";
+import * as React from "react";
+import { render } from "react-dom";
+import { createOvermind } from "overmind";
+import { Provider } from "overmind-react";
+import { config } from "./overmind";
 import App from "./App";
+import "./tailwind.generated.css";
 
-ReactDOM.render(
-  <React.StrictMode>
+const overmind = createOvermind(config);
+
+render(
+  <Provider value={overmind}>
     <App />
-  </React.StrictMode>,
+  </Provider>,
   document.getElementById("root")
 );

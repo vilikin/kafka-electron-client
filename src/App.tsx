@@ -1,4 +1,5 @@
 import React from "react";
+import { useActions, useOvermindState } from "./overmind";
 const { remote } = window.require("electron");
 const fs = window.require("fs");
 const path = window.require("path");
@@ -10,6 +11,9 @@ function doNodeStuff() {
 }
 
 function App() {
+  const environment = useOvermindState().environment;
+  const { changeEnvironment } = useActions();
+
   return (
     <div className="max-w-md mx-auto flex p-6 bg-gray-100 mt-10 rounded-lg shadow-xl">
       <div className="ml-6 pt-1">
@@ -19,6 +23,8 @@ function App() {
         <p className="text-base text-gray-700 leading-normal">
           Building apps together
         </p>
+        <p>{environment}</p>
+        <button onClick={() => changeEnvironment("dev")}>Change to dev</button>
         <button onClick={doNodeStuff}>Do node stuff</button>
       </div>
     </div>
