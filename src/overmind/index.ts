@@ -1,4 +1,4 @@
-import { IConfig } from "overmind";
+import { IConfig, OnInitialize } from "overmind";
 import {
   createActionsHook,
   createEffectsHook,
@@ -8,10 +8,19 @@ import {
 } from "overmind-react";
 import { state } from "./state";
 import * as actions from "./actions";
+import * as effects from "./effects";
+
+const onInitialize: OnInitialize = ({ actions, effects }) => {
+  effects.router.route("/", actions.showMainPage);
+  effects.router.route("/environments", actions.showEnvironmentsPage);
+  effects.router.start();
+};
 
 export const config = {
+  onInitialize,
   state,
   actions,
+  effects,
 };
 
 declare module "overmind" {

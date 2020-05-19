@@ -8,6 +8,9 @@ export const Sidebar: FunctionComponent = () => {
       style={{ width: "250px" }}
     >
       <EnvironmentSelector />
+      <a href="#!" className="text-white">
+        Home
+      </a>
     </div>
   );
 };

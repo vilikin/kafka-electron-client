@@ -57,7 +57,7 @@ export const EnvironmentSelector: FunctionComponent = () => {
           Dev
         </li>
         <li className="px-3 py-2 cursor-pointer hover:bg-gray-800 hover:text-white">
-          Edit environments
+          <a href="#!environments">Edit environments</a>
         </li>
       </ul>
     </div>

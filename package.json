@@ -14,6 +14,8 @@
     "electron-is-dev": "^1.2.0",
     "overmind": "^23.1.0",
     "overmind-react": "^24.1.0",
+    "page": "^1.11.6",
+    "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
@@ -53,6 +55,7 @@
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^2.2.0",
     "@types/classnames": "^2.2.10",
+    "@types/page": "^1.8.0",
     "autoprefixer": "^9.8.0",
     "concurrently": "^5.2.0",
     "electron": "^8.3.0",

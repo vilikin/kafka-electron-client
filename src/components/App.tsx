@@ -1,6 +1,7 @@
 import React, { FunctionComponent } from "react";
 import { useActions, useOvermindState } from "../overmind";
 import { Sidebar } from "./Sidebar";
+import { PageIds } from "../overmind/state";
 const { remote } = window.require("electron");
 const fs = window.require("fs");
 const path = window.require("path");
@@ -12,13 +13,17 @@ function doNodeStuff() {
 }
 
 export const App: FunctionComponent = () => {
-  const environment = useOvermindState().environment;
-  const { changeEnvironment } = useActions();
+  const { currentPageId } = useOvermindState().routing;
 
   return (
     <div className="flex">
       <Sidebar />
-      <div className="flex-1 bg-grey-lightest text-center">Main Content</div>
+      <div className="flex-1 bg-grey-lightest text-center">
+        {currentPageId === PageIds.EDIT_ENVIRONMENTS && (
+          <div>We are configuring environments here</div>
+        )}
+        {currentPageId === PageIds.HOME && <div>We are home now :)</div>}
+      </div>
     </div>
   );
 };
