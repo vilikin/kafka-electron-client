@@ -12,7 +12,6 @@ import * as effects from "./effects";
 
 const onInitialize: OnInitialize = ({ actions, effects }) => {
   effects.router.route("/", actions.showMainPage);
-  effects.router.route("/environments", actions.showEnvironmentsPage);
   effects.router.start();
 };
 
