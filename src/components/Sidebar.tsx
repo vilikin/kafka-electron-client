@@ -1,5 +1,4 @@
 import React, { FunctionComponent } from "react";
-import { EnvironmentSelector } from "./EnvironmentSelector";
 
 export const Sidebar: FunctionComponent = () => {
   return (

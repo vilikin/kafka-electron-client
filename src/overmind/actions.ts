@@ -76,3 +76,12 @@ export const saveDraftEnvironment: Action = ({ state }) => {
     selected: state.environments[state.draftEnvironment.id].selected,
   };
 };
+
+export const selectEnvironment: Action<string> = ({ state }, environmentId) => {
+  state.environmentsList.forEach((environment) => {
+    state.environments[environment.id] = {
+      ...state.environments[environment.id],
+      selected: environment.id === environmentId,
+    };
+  });
+};

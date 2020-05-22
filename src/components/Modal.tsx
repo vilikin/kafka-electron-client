@@ -2,7 +2,7 @@ import React, { FunctionComponent } from "react";
 import classNames from "classnames";
 import { useActions, useOvermindState } from "../overmind";
 import { ModalContentType } from "../overmind/state";
-import { EnvironmentConfigurationView } from "./EnvironmentConfigurationView/EnvironmentConfigurationView";
+import { EnvironmentConfigurationView } from "./Environments/EnvironmentConfigurationView";
 
 export const Modal: FunctionComponent = () => {
   const { visible, contentType } = useOvermindState().modal;

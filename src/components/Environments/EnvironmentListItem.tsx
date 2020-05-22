@@ -26,7 +26,7 @@ export const EnvironmentListItem: FunctionComponent<EnvironmentListItemProps> = 
         onClick={onClick}
       >
         <FaCircle
-          className={`w-3 h-3 flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
+          className={`flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
             environment.color
           )}-500`}
         />

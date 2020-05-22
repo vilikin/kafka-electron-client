@@ -3,7 +3,7 @@ import { useOvermindState } from "../overmind";
 import { Sidebar } from "./Sidebar";
 import { PageIds } from "../overmind/state";
 import { Modal } from "./Modal";
-import { EnvironmentSelector } from "./EnvironmentSelector";
+import { EnvironmentSelector } from "./Environments/EnvironmentSelector";
 
 export const App: FunctionComponent = () => {
   const { currentPageId } = useOvermindState().routing;
