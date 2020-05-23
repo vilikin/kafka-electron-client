@@ -2,7 +2,6 @@ import React, { FunctionComponent, useCallback } from "react";
 import { useActions, useOvermindState } from "../../overmind";
 import { TextInput } from "../Form/TextInput";
 import { SelectInput } from "../Form/SelectInput";
-import { Button } from "../Form/Button";
 import {
   EnvironmentColor,
   getColorLabel,
@@ -10,40 +9,34 @@ import {
   KafkaAuthentication,
   KafkaAuthenticationMethod,
 } from "../../models/environments";
-import { defaultTailwindColor } from "../../constants";
 
 export const EnvironmentEditor: FunctionComponent = () => {
-  const {
-    draftEnvironment,
-    draftEnvironmentIsNew,
-    draftContainsChanges,
-  } = useOvermindState();
-  const {
-    updateDraftEnvironment,
-    saveDraftEnvironment,
-    removeEnvironment,
-    discardDraftEnvironment,
-  } = useActions();
+  const { draftEnvironmentBeingEdited } = useOvermindState();
+
+  const { updateDraftEnvironment } = useActions();
 
   const onEnvironmentNameChange = useCallback(
     (value) => {
-      updateDraftEnvironment({ ...draftEnvironment!, name: value });
+      updateDraftEnvironment({ ...draftEnvironmentBeingEdited!, name: value });
     },
-    [draftEnvironment, updateDraftEnvironment]
+    [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
 
   const onEnvironmentColorChange = useCallback(
     (value) => {
-      updateDraftEnvironment({ ...draftEnvironment!, color: value });
+      updateDraftEnvironment({ ...draftEnvironmentBeingEdited!, color: value });
     },
-    [draftEnvironment, updateDraftEnvironment]
+    [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
 
   const onBrokersChange = useCallback(
     (value) => {
-      updateDraftEnvironment({ ...draftEnvironment!, brokers: value });
+      updateDraftEnvironment({
+        ...draftEnvironmentBeingEdited!,
+        brokers: value,
+      });
     },
-    [draftEnvironment, updateDraftEnvironment]
+    [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
 
   const onAuthenticationMethodChange = useCallback(
@@ -56,82 +49,75 @@ export const EnvironmentEditor: FunctionComponent = () => {
               password: "",
             }
           : { method: KafkaAuthenticationMethod.NONE };
-      updateDraftEnvironment({ ...draftEnvironment!, authentication });
+      updateDraftEnvironment({
+        ...draftEnvironmentBeingEdited!,
+        authentication,
+      });
     },
-    [draftEnvironment, updateDraftEnvironment]
+    [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
 
   const onSaslUsernameChange = useCallback(
     (value) => {
       if (
-        draftEnvironment!.authentication.method ===
+        draftEnvironmentBeingEdited!.authentication.method ===
         KafkaAuthenticationMethod.SASL
       ) {
         updateDraftEnvironment({
-          ...draftEnvironment!,
+          ...draftEnvironmentBeingEdited!,
           authentication: {
-            ...draftEnvironment!.authentication,
+            ...draftEnvironmentBeingEdited!.authentication,
             username: value,
           },
         });
       }
     },
-    [draftEnvironment, updateDraftEnvironment]
+    [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
 
   const onSaslPasswordChange = useCallback(
     (value) => {
       if (
-        draftEnvironment!.authentication.method ===
+        draftEnvironmentBeingEdited!.authentication.method ===
         KafkaAuthenticationMethod.SASL
       ) {
         updateDraftEnvironment({
-          ...draftEnvironment!,
+          ...draftEnvironmentBeingEdited!,
           authentication: {
-            ...draftEnvironment!.authentication,
+            ...draftEnvironmentBeingEdited!.authentication,
             password: value,
           },
         });
       }
     },
-    [draftEnvironment, updateDraftEnvironment]
+    [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
 
-  const onSubmit = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      saveDraftEnvironment();
-    },
-    [draftEnvironment, saveDraftEnvironment]
-  );
-
-  const onRemove = useCallback(() => {
-    removeEnvironment(draftEnvironment!.id);
-    discardDraftEnvironment();
-  }, [draftEnvironment, removeEnvironment, discardDraftEnvironment]);
-
-  if (!draftEnvironment) {
+  if (!draftEnvironmentBeingEdited) {
     return <div>Not editing an env</div>;
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <div className="mb-4">
       <div className="flex flex-wrap -mx-3 mb-6">
-        <div className="w-1/2 px-3 mb-0">
+        <div className="flex-1 px-3 mb-0">
           <TextInput
             onChange={onEnvironmentNameChange}
-            value={draftEnvironment.name}
+            value={draftEnvironmentBeingEdited.name}
             id="environment-name"
             label="Environment name"
             placeholder="Production, QA, Dev, etc"
-            required={true}
+            error={
+              draftEnvironmentBeingEdited.name.length === 0
+                ? "Please enter a name for the environment"
+                : undefined
+            }
           />
         </div>
-        <div className="w-1/2 px-3">
+        <div className="flex-1 px-3">
           <SelectInput
             onChange={onEnvironmentColorChange}
-            value={draftEnvironment.color}
+            value={draftEnvironmentBeingEdited.color}
             options={Object.keys(EnvironmentColor).map((color) => ({
               value: color,
               label: getColorLabel(color as EnvironmentColor),
@@ -145,11 +131,15 @@ export const EnvironmentEditor: FunctionComponent = () => {
         <div className="w-full px-3">
           <TextInput
             onChange={onBrokersChange}
-            value={draftEnvironment.brokers}
+            value={draftEnvironmentBeingEdited.brokers}
             id="broker-urls"
             label="Bootstrap servers"
             placeholder="localhost:9092"
-            required={true}
+            error={
+              draftEnvironmentBeingEdited.brokers.length === 0
+                ? "Please enter bootstrap servers for the environment"
+                : undefined
+            }
           />
         </div>
       </div>
@@ -157,7 +147,7 @@ export const EnvironmentEditor: FunctionComponent = () => {
         <div className="w-full px-3">
           <SelectInput
             onChange={onAuthenticationMethodChange}
-            value={draftEnvironment.authentication.method}
+            value={draftEnvironmentBeingEdited.authentication.method}
             options={Object.keys(KafkaAuthenticationMethod).map((method) => ({
               value: method,
               label: getKafkaAuthenticationMethodLabel(
@@ -169,50 +159,42 @@ export const EnvironmentEditor: FunctionComponent = () => {
           />
         </div>
       </div>
-      {draftEnvironment.authentication.method ===
+      {draftEnvironmentBeingEdited.authentication.method ===
         KafkaAuthenticationMethod.SASL && (
         <div className="flex flex-wrap -mx-3 mb-6">
           <div className="w-1/2 px-3 mb-0">
             <TextInput
               onChange={onSaslUsernameChange}
-              value={draftEnvironment.authentication.username}
+              value={draftEnvironmentBeingEdited.authentication.username}
               id="sasl-username"
               label="Username"
               placeholder="Username"
-              required={true}
+              error={
+                draftEnvironmentBeingEdited?.authentication.username.length ===
+                0
+                  ? "Please enter username"
+                  : undefined
+              }
             />
           </div>
           <div className="w-1/2 px-3">
             <TextInput
               onChange={onSaslPasswordChange}
-              value={draftEnvironment.authentication.password}
+              value={draftEnvironmentBeingEdited.authentication.password}
               id="sasl-password"
               label="Password"
               type="password"
               placeholder="Password"
-              required={true}
+              error={
+                draftEnvironmentBeingEdited?.authentication.password.length ===
+                0
+                  ? "Please enter password"
+                  : undefined
+              }
             />
           </div>
         </div>
       )}
-      <div className="flex flex-wrap justify-end">
-        {draftEnvironmentIsNew ? (
-          <Button
-            text="Cancel"
-            color="gray"
-            onClick={discardDraftEnvironment}
-          />
-        ) : (
-          <Button text="Remove" color="red" onClick={onRemove} />
-        )}
-        <Button
-          text={draftEnvironmentIsNew ? "Save" : "Save changes"}
-          type="submit"
-          color={defaultTailwindColor}
-          className="ml-2"
-          disabled={!draftEnvironmentIsNew && !draftContainsChanges}
-        />
-      </div>
-    </form>
+    </div>
   );
 };

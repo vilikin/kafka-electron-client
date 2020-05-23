@@ -50,7 +50,6 @@ export const TextInput: FunctionComponent<TextInputProps> = ({
         onChange={onChangeCallback}
         required={required}
       />
-      {error && <p className="text-red-500 text-xs italic">{error}</p>}
     </>
   );
 };

@@ -73,7 +73,7 @@ export type KafkaAuthentication =
   | KafkaAuthenticationSasl
   | KafkaAuthenticationNone;
 
-export interface EnvironmentDraft {
+export interface EnvironmentBase {
   id: string;
   name: string;
   color: EnvironmentColor;
@@ -81,7 +81,11 @@ export interface EnvironmentDraft {
   authentication: KafkaAuthentication;
 }
 
-export interface Environment extends EnvironmentDraft {
+export interface EnvironmentDraft extends EnvironmentBase {
+  editing: boolean;
+}
+
+export interface Environment extends EnvironmentBase {
   selected: boolean;
 }
 
@@ -97,4 +101,14 @@ export function getKafkaAuthenticationMethodLabel(
   method: KafkaAuthenticationMethod
 ) {
   return authenticationMethodToLabel[method];
+}
+
+export function draftEnvironmentContainsErrors(env: EnvironmentDraft): boolean {
+  return (
+    env.name.length === 0 ||
+    env.brokers.length === 0 ||
+    (env.authentication.method === KafkaAuthenticationMethod.SASL &&
+      (env.authentication.username.length === 0 ||
+        env.authentication.password.length === 0))
+  );
 }

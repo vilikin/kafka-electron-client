@@ -8,13 +8,12 @@ import React, {
 import { FaCaretDown, FaCircle, FaCog } from "react-icons/fa";
 import classNames from "classnames";
 import { useActions, useOvermindState } from "../../overmind";
-import { ModalContentType } from "../../overmind/state";
 import { getTailwindColor } from "../../models/environments";
 import { defaultTailwindColor } from "../../constants";
 
 export const EnvironmentSelector: FunctionComponent = () => {
-  const { openModal, selectEnvironment } = useActions();
-  const { selectedEnvironment, environmentsList } = useOvermindState();
+  const { openEnvironmentsModal, selectEnvironment } = useActions();
+  const { selectedEnvironment, environmentList } = useOvermindState();
   const envSelectorAndDropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -39,9 +38,9 @@ export const EnvironmentSelector: FunctionComponent = () => {
   }, [dropdownOpen]);
 
   const openEnvironmentConfig = useCallback(() => {
-    openModal(ModalContentType.EDIT_ENVIRONMENTS);
+    openEnvironmentsModal();
     setDropdownOpen(false);
-  }, [openModal]);
+  }, [openEnvironmentsModal]);
 
   const handleEnvironmentClick = useCallback(
     (environment) => {
@@ -90,11 +89,11 @@ export const EnvironmentSelector: FunctionComponent = () => {
               { hidden: !dropdownOpen }
             )}
           >
-            {environmentsList.length !== 0 && (
+            {environmentList.length !== 0 && (
               <>
                 <ul>
-                  {environmentsList.map((environment) => (
-                    <li>
+                  {environmentList.map((environment) => (
+                    <li key={environment.id}>
                       <button
                         onClick={() => handleEnvironmentClick(environment)}
                         className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-900"

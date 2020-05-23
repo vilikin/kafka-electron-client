@@ -1,19 +1,31 @@
 import { derived } from "overmind";
-import { Environment, EnvironmentDraft } from "../models/environments";
+import {
+  draftEnvironmentContainsErrors,
+  Environment,
+  EnvironmentBase,
+  EnvironmentDraft,
+} from "../models/environments";
+import * as _ from "lodash";
 
 export type AppState = {
   routing: RoutingState;
-  modal: ModalState;
+  environmentsModalOpen: boolean;
   environments: EnvironmentsState;
-  draftEnvironment: EnvironmentDraft | null;
-  environmentsList: Environment[];
+  draftEnvironments: DraftEnvironmentsState;
+  environmentList: Environment[];
   selectedEnvironment: Environment | null;
-  draftEnvironmentIsNew: boolean;
-  draftContainsChanges: boolean;
+  draftEnvironmentList: EnvironmentDraft[];
+  draftEnvironmentBeingEdited: EnvironmentDraft | null;
+  draftEnvironmentIdsWithErrors: string[];
+  draftEnvironmentsHaveUnsavedChanges: boolean;
 };
 
 export interface EnvironmentsState {
   [key: string]: Environment;
+}
+
+export interface DraftEnvironmentsState {
+  [key: string]: EnvironmentDraft;
 }
 
 export enum PageIds {
@@ -24,55 +36,41 @@ export interface RoutingState {
   currentPageId: PageIds;
 }
 
-export enum ModalContentType {
-  EDIT_ENVIRONMENTS = "EDIT_ENVIRONMENTS",
-}
-
-export interface ModalState {
-  visible: boolean;
-  contentType: ModalContentType | null;
-}
-
 export const state: AppState = {
   environments: {},
-  draftEnvironment: null,
+  draftEnvironments: {},
   routing: {
     currentPageId: PageIds.HOME,
   },
-  modal: {
-    visible: false,
-    contentType: null,
-  },
-  environmentsList: derived<AppState, Environment[]>((state) =>
+  environmentsModalOpen: false,
+  environmentList: derived<AppState, Environment[]>((state) =>
     Object.values(state.environments)
   ),
   selectedEnvironment: derived<AppState, Environment | null>(
     (state) =>
-      state.environmentsList.find((environment) => environment.selected) ?? null
+      state.environmentList.find((environment) => environment.selected) ?? null
   ),
-  draftEnvironmentIsNew: derived<AppState, boolean>(
+  draftEnvironmentList: derived<AppState, EnvironmentDraft[]>((state) =>
+    Object.values(state.draftEnvironments)
+  ),
+  draftEnvironmentBeingEdited: derived<AppState, EnvironmentDraft | null>(
     (state) =>
-      state.draftEnvironment !== null &&
-      !state.environmentsList.some(
-        (env) => env.id === state.draftEnvironment?.id
-      )
+      state.draftEnvironmentList.find((environment) => environment.editing) ??
+      null
   ),
-  draftContainsChanges: derived<AppState, boolean>((state) => {
-    if (state.draftEnvironment && !state.draftEnvironmentIsNew) {
-      const environment = state.environmentsList.find(
-        (env) => env.id === state.draftEnvironment!.id
-      )!;
+  draftEnvironmentIdsWithErrors: derived<AppState, string[]>((state) =>
+    Object.values(state.draftEnvironments)
+      .filter(draftEnvironmentContainsErrors)
+      .map((env) => env.id)
+  ),
+  draftEnvironmentsHaveUnsavedChanges: derived<AppState, boolean>((state) => {
+    const normalizedEnvironments: EnvironmentBase[] = state.environmentList.map(
+      (env) => _.omit(env, "selected")
+    );
+    const normalizedDraftEnvironments: EnvironmentBase[] = state.draftEnvironmentList.map(
+      (env) => _.omit(env, "editing")
+    );
 
-      const draftWithSelectedProp = {
-        ...state.draftEnvironment,
-        selected: environment.selected,
-      };
-
-      return (
-        JSON.stringify(environment) !== JSON.stringify(draftWithSelectedProp)
-      );
-    }
-
-    return false;
+    return !_.isEqual(normalizedEnvironments, normalizedDraftEnvironments);
   }),
 };

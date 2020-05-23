@@ -2,7 +2,7 @@ import React, { FunctionComponent } from "react";
 import { useOvermindState } from "../overmind";
 import { Sidebar } from "./Sidebar";
 import { PageIds } from "../overmind/state";
-import { Modal } from "./Modal";
+import { EnvironmentsModal } from "./Environments/EnvironmentsModal";
 import { EnvironmentSelector } from "./Environments/EnvironmentSelector";
 
 export const App: FunctionComponent = () => {
@@ -17,7 +17,7 @@ export const App: FunctionComponent = () => {
         <div className="flex-1 bg-grey-lightest text-center">
           {currentPageId === PageIds.HOME && <div></div>}
         </div>
-        <Modal />
+        <EnvironmentsModal />
       </div>
     </div>
   );
