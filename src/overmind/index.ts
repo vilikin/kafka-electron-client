@@ -10,9 +10,22 @@ import { state } from "./state";
 import * as actions from "./actions";
 import * as effects from "./effects";
 
-const onInitialize: OnInitialize = ({ actions, effects }) => {
+const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
   effects.router.route("/", actions.showMainPage);
   effects.router.start();
+
+  effects.store.loadConfig().then((config) => {
+    actions.setEnvironments(config.environments);
+  });
+
+  instance.reaction(
+    (state) => state.environments,
+    (environments) =>
+      effects.store.saveConfig({ environments: Object.values(environments) }),
+    {
+      nested: true,
+    }
+  );
 };
 
 export const config = {

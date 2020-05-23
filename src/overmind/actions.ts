@@ -1,5 +1,5 @@
 import { Action, AsyncAction } from "overmind";
-import { ModalContentType, PageIds } from "./state";
+import { EnvironmentsState, ModalContentType, PageIds } from "./state";
 import { v4 as uuid } from "uuid";
 import {
   Environment,
@@ -60,20 +60,14 @@ export const discardDraftEnvironment: Action = ({ state }) => {
   state.draftEnvironment = { ...state.environmentsList[0] };
 };
 
-export const saveDraftEnvironment: Action = ({ state }) => {
+export const saveDraftEnvironment: Action = ({ state, effects }) => {
   if (!state.draftEnvironment) return;
-
-  if (state.draftEnvironmentIsNew) {
-    state.environments[state.draftEnvironment.id] = {
-      ...state.draftEnvironment,
-      selected: false,
-    };
-    return;
-  }
 
   state.environments[state.draftEnvironment.id] = {
     ...state.draftEnvironment,
-    selected: state.environments[state.draftEnvironment.id].selected,
+    selected: state.draftEnvironmentIsNew
+      ? false
+      : state.environments[state.draftEnvironment.id].selected,
   };
 };
 
@@ -84,4 +78,16 @@ export const selectEnvironment: Action<string> = ({ state }, environmentId) => {
       selected: environment.id === environmentId,
     };
   });
+};
+
+export const setEnvironments: Action<Environment[]> = (
+  { state },
+  environments
+) => {
+  state.environments = environments.reduce((acc, current) => {
+    return {
+      ...acc,
+      [current.id]: current,
+    };
+  }, {});
 };
