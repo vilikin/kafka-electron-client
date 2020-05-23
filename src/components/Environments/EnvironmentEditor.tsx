@@ -10,6 +10,7 @@ import {
   KafkaAuthentication,
   KafkaAuthenticationMethod,
 } from "../../models/environments";
+import { defaultTailwindColor } from "../../constants";
 
 export const EnvironmentEditor: FunctionComponent = () => {
   const {
@@ -207,7 +208,7 @@ export const EnvironmentEditor: FunctionComponent = () => {
         <Button
           text={draftEnvironmentIsNew ? "Save" : "Save changes"}
           type="submit"
-          color="blue"
+          color={defaultTailwindColor}
           className="ml-2"
           disabled={!draftEnvironmentIsNew && !draftContainsChanges}
         />

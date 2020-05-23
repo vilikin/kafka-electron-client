@@ -15,7 +15,7 @@ export const App: FunctionComponent = () => {
       <div className="flex">
         {selectedEnvironment !== null && <Sidebar />}
         <div className="flex-1 bg-grey-lightest text-center">
-          {currentPageId === PageIds.HOME && <div>We are home now :)</div>}
+          {currentPageId === PageIds.HOME && <div></div>}
         </div>
         <Modal />
       </div>

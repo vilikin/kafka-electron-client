@@ -3,6 +3,7 @@ import { EnvironmentList } from "./EnvironmentList";
 import { useActions, useOvermindState } from "../../overmind";
 import { EnvironmentEditor } from "./EnvironmentEditor";
 import { Button } from "../Form/Button";
+import { FaGlobeEurope } from "react-icons/fa";
 
 export const EnvironmentConfigurationView: FunctionComponent = () => {
   const {
@@ -43,30 +44,14 @@ export const EnvironmentConfigurationView: FunctionComponent = () => {
           className="flex-1 flex flex-col justify-center items-center"
           style={{ minHeight: "400px" }}
         >
-          <p className="text-md text-gray-700">
+          <FaGlobeEurope className="mb-5 text-large-icon text-gray-400" />
+          <p className="text-lg text-gray-600">
             It looks like you haven't set up any environments yet. Shall we
             create the first one?
           </p>
           <Button
             text="New environment"
-            color="blue"
-            className="mt-5"
-            onClick={createNewDraftEnvironment}
-          />
-        </div>
-      )}
-      {environmentsList.length !== 0 && draftEnvironment === null && (
-        <div
-          className="flex-1 flex flex-col justify-center items-center"
-          style={{ minHeight: "400px" }}
-        >
-          <p className="text-md text-gray-700">
-            Edit one of the environments by clicking them on the left side, or
-            create a new environment.
-          </p>
-          <Button
-            text="New environment"
-            color="blue"
+            color="indigo"
             className="mt-5"
             onClick={createNewDraftEnvironment}
           />

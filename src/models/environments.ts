@@ -1,18 +1,19 @@
 export enum EnvironmentColor {
   RED = "RED",
-  GREEN = "GREEN",
   ORANGE = "ORANGE",
   YELLOW = "YELLOW",
+  GREEN = "GREEN",
+  TEAL = "TEAL",
+  BLUE = "BLUE",
+  INDIGO = "INDIGO",
+  PURPLE = "PURPLE",
+  PINK = "PINK",
 }
 
 const colorEnumMap = {
   [EnvironmentColor.RED]: {
     tailwindColor: "red",
     humanReadableString: "Red",
-  },
-  [EnvironmentColor.GREEN]: {
-    tailwindColor: "green",
-    humanReadableString: "Green",
   },
   [EnvironmentColor.ORANGE]: {
     tailwindColor: "orange",
@@ -21,6 +22,30 @@ const colorEnumMap = {
   [EnvironmentColor.YELLOW]: {
     tailwindColor: "yellow",
     humanReadableString: "Yellow",
+  },
+  [EnvironmentColor.GREEN]: {
+    tailwindColor: "green",
+    humanReadableString: "Green",
+  },
+  [EnvironmentColor.TEAL]: {
+    tailwindColor: "teal",
+    humanReadableString: "Teal",
+  },
+  [EnvironmentColor.BLUE]: {
+    tailwindColor: "blue",
+    humanReadableString: "Blue",
+  },
+  [EnvironmentColor.INDIGO]: {
+    tailwindColor: "indigo",
+    humanReadableString: "Indigo",
+  },
+  [EnvironmentColor.PURPLE]: {
+    tailwindColor: "purple",
+    humanReadableString: "Purple",
+  },
+  [EnvironmentColor.PINK]: {
+    tailwindColor: "pink",
+    humanReadableString: "Pink",
   },
 };
 

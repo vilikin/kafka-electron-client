@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from "react";
 import { useOvermindState } from "../../overmind";
-import { FaPlus } from "react-icons/fa";
-import { Environment } from "../../models/environments";
-import { EnvironmentListItem } from "./EnvironmentListItem";
+import { FaCircle, FaPlusCircle } from "react-icons/fa";
+import { Environment, getTailwindColor } from "../../models/environments";
+import classNames from "classnames";
 
 export interface EnvironmentListProps {
   onEnvironmentClicked: (environment: Environment) => void;
@@ -19,24 +19,37 @@ export const EnvironmentList: FunctionComponent<EnvironmentListProps> = ({
     <div className="pr-4">
       <ul>
         {environmentsList.map((environment) => (
-          <EnvironmentListItem
-            onClick={() => onEnvironmentClicked(environment)}
-            environment={environment}
-            selected={draftEnvironment?.id === environment.id}
-          />
+          <li className="mb-1">
+            <button
+              className={classNames(
+                "flex w-full rounded-sm py-2 px-3 items-center text-gray-900 hover:bg-gray-200 focus:outline-none focus:shadow-outline",
+                {
+                  "bg-gray-200": draftEnvironment?.id === environment.id,
+                }
+              )}
+              onClick={() => onEnvironmentClicked(environment)}
+            >
+              <FaCircle
+                className={`flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
+                  environment.color
+                )}-500`}
+              />
+              <span className="ml-3 text-md">{environment.name}</span>
+            </button>
+          </li>
         ))}
       </ul>
-      <hr className="my-2" />
+      <hr className="my-3" />
       <ul>
-        <li className="py-2">
+        <li className="">
           <button
-            className="flex w-full items-center text-gray-500 hover:text-gray-900 focus:outline-none focus:shadow-outline"
+            className="flex w-full rounded-sm py-2 px-3 items-center text-gray-900 hover:bg-gray-200 focus:outline-none focus:shadow-outline"
             onClick={onCreateNewEnvironment}
           >
-            <FaPlus className={`w-3 h-3 flex-auto flex-shrink-0 flex-grow-0`} />
-            <span className="ml-2 tracking-wide text-sm font-bold">
-              New environment
-            </span>
+            <FaPlusCircle
+              className={`flex-auto flex-shrink-0 flex-grow-0 text-gray-700`}
+            />
+            <span className="ml-3 text-md">New environment</span>
           </button>
         </li>
       </ul>

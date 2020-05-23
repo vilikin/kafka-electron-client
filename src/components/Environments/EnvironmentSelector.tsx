@@ -5,11 +5,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FaCaretDown, FaCircle, FaPlus } from "react-icons/fa";
+import { FaCaretDown, FaCircle, FaCog } from "react-icons/fa";
 import classNames from "classnames";
 import { useActions, useOvermindState } from "../../overmind";
 import { ModalContentType } from "../../overmind/state";
-import { EnvironmentColor, getTailwindColor } from "../../models/environments";
+import { getTailwindColor } from "../../models/environments";
+import { defaultTailwindColor } from "../../constants";
 
 export const EnvironmentSelector: FunctionComponent = () => {
   const { openModal, selectEnvironment } = useActions();
@@ -53,15 +54,27 @@ export const EnvironmentSelector: FunctionComponent = () => {
   return (
     <>
       <div
-        className={`w-full p-2 bg-${getTailwindColor(
-          selectedEnvironment?.color ?? EnvironmentColor.GREEN
-        )}-600 shadow-md border-b-2 flex justify-center border-${getTailwindColor(
-          selectedEnvironment?.color ?? EnvironmentColor.GREEN
-        )}-700`}
+        className={`w-full p-1 bg-${
+          selectedEnvironment
+            ? getTailwindColor(selectedEnvironment.color)
+            : defaultTailwindColor
+        }-600 shadow-md border-b-2 flex justify-center border-${
+          selectedEnvironment
+            ? getTailwindColor(selectedEnvironment.color)
+            : defaultTailwindColor
+        }-400 transition-color duration-500`}
       >
         <div className="relative" ref={envSelectorAndDropdownRef}>
           <button
-            className="inline-flex items-center cursor-pointer text-white focus:outline-none"
+            className={`inline-flex items-center cursor-pointer text-white rounded-md py-1 px-3 focus:outline-none focus:bg-${
+              selectedEnvironment
+                ? getTailwindColor(selectedEnvironment.color)
+                : defaultTailwindColor
+            }-500 hover:bg-${
+              selectedEnvironment
+                ? getTailwindColor(selectedEnvironment.color)
+                : defaultTailwindColor
+            }-500`}
             onClick={handleEnvironmentSelectorClick}
           >
             <span className="mr-1">
@@ -71,44 +84,50 @@ export const EnvironmentSelector: FunctionComponent = () => {
             </span>
             <FaCaretDown />
           </button>
-          <ul
+          <div
             className={classNames(
               "absolute z-40 mt-4 border border-gray-400 shadow-md bg-white rounded-md py-2",
               { hidden: !dropdownOpen }
             )}
-            style={{ minWidth: "200px" }}
           >
-            {environmentsList.map((environment) => (
+            {environmentsList.length !== 0 && (
+              <>
+                <ul>
+                  {environmentsList.map((environment) => (
+                    <li>
+                      <button
+                        onClick={() => handleEnvironmentClick(environment)}
+                        className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-900"
+                      >
+                        <FaCircle
+                          className={`text-sm flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
+                            environment.color
+                          )}-500`}
+                        />
+                        <span className="ml-3 text-md">{environment.name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <hr className="my-2" />
+              </>
+            )}
+            <ul>
               <li>
                 <button
-                  onClick={() => handleEnvironmentClick(environment)}
-                  className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-800"
+                  className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-900"
+                  onClick={openEnvironmentConfig}
                 >
-                  <FaCircle
-                    className={`text-md flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
-                      environment.color
-                    )}-500`}
+                  <FaCog
+                    className={`text-md flex-auto flex-shrink-0 flex-grow-0 text-gray-700`}
                   />
                   <span className="ml-3 tracking-wide text-md">
-                    {environment.name}
+                    Edit&nbsp;environments
                   </span>
                 </button>
               </li>
-            ))}
-            <li>
-              <button
-                className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-800"
-                onClick={openEnvironmentConfig}
-              >
-                <FaPlus
-                  className={`text-md flex-auto flex-shrink-0 flex-grow-0 text-gray-500`}
-                />
-                <span className="ml-3 tracking-wide text-md">
-                  Edit environments
-                </span>
-              </button>
-            </li>
-          </ul>
+            </ul>
+          </div>
         </div>
       </div>
     </>

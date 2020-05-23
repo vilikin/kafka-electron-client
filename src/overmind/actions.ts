@@ -36,7 +36,7 @@ export const createNewDraftEnvironment: Action = ({ state }) => {
   state.draftEnvironment = {
     id: uuid(),
     name: "",
-    color: EnvironmentColor.GREEN,
+    color: EnvironmentColor.RED,
     brokers: "",
     authentication: {
       method: KafkaAuthenticationMethod.NONE,
@@ -90,4 +90,6 @@ export const setEnvironments: Action<Environment[]> = (
       [current.id]: current,
     };
   }, {});
+
+  state.draftEnvironment = environments.length !== 0 ? environments[0] : null;
 };

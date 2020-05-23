@@ -1,7 +1,11 @@
 module.exports = {
   purge: [],
   theme: {
-    extend: {},
+    extend: {
+      fontSize: {
+        "large-icon": "9rem",
+      },
+    },
   },
   variants: {
     backgroundColor: ["responsive", "hover", "focus", "disabled"],
