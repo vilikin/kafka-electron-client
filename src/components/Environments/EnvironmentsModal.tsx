@@ -4,8 +4,8 @@ import { useActions, useOvermindState } from "../../overmind";
 import { EnvironmentConfigurationView } from "./EnvironmentConfigurationView";
 
 export const EnvironmentsModal: FunctionComponent = () => {
-  const { environmentsModalOpen } = useOvermindState();
-  const { discardChangesAndCloseEnvironmentsModal } = useActions();
+  const { environmentsModalOpen } = useOvermindState().environments;
+  const { discardChangesAndCloseEnvironmentsModal } = useActions().environments;
 
   return (
     <div

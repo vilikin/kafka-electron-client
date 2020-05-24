@@ -12,14 +12,14 @@ export const EnvironmentConfigurationView: FunctionComponent = () => {
     draftEnvironmentList,
     draftEnvironmentBeingEdited,
     draftEnvironmentIdsWithErrors,
-  } = useOvermindState();
+  } = useOvermindState().environments;
   const {
     selectDraftEnvironment,
     createNewDraftEnvironment,
     discardChangesAndCloseEnvironmentsModal,
     saveChangesAndCloseEnvironmentsModal,
     removeDraftEnvironment,
-  } = useActions();
+  } = useActions().environments;
 
   const createEnvironment = useCallback(() => {
     createNewDraftEnvironment();

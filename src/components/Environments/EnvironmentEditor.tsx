@@ -11,9 +11,9 @@ import {
 } from "../../models/environments";
 
 export const EnvironmentEditor: FunctionComponent = () => {
-  const { draftEnvironmentBeingEdited } = useOvermindState();
+  const { draftEnvironmentBeingEdited } = useOvermindState().environments;
 
-  const { updateDraftEnvironment } = useActions();
+  const { updateDraftEnvironment } = useActions().environments;
 
   const onEnvironmentNameChange = useCallback(
     (value) => {

@@ -6,34 +6,38 @@ import {
   createReactionHook,
   createStateHook,
 } from "overmind-react";
-import { state } from "./state";
-import * as actions from "./actions";
 import * as effects from "./effects";
+import { merge, namespaced } from "overmind/config";
+import * as environments from "./environments";
+import * as routing from "./routing";
 
 const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
-  effects.router.route("/", actions.showMainPage);
+  effects.router.route("/", actions.routing.showMainPage);
   effects.router.start();
 
   effects.store.loadConfig().then((config) => {
-    actions.setEnvironments(config.environments);
+    actions.environments.setEnvironments(config.environments);
   });
 
   instance.reaction(
-    (state) => state.environments,
-    (environments) =>
-      effects.store.saveConfig({ environments: Object.values(environments) }),
+    (state) => state.environments.environmentsObject,
+    (environmentsObject) =>
+      effects.store.saveConfig({
+        environments: Object.values(environmentsObject),
+      }),
     {
       nested: true,
     }
   );
 };
 
-export const config = {
-  onInitialize,
-  state,
-  actions,
-  effects,
-};
+export const config = merge(
+  {
+    onInitialize,
+    effects,
+  },
+  namespaced({ environments, routing })
+);
 
 declare module "overmind" {
   interface Config extends IConfig<typeof config> {}

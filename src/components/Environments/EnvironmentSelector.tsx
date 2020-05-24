@@ -12,8 +12,14 @@ import { getTailwindColor } from "../../models/environments";
 import { defaultTailwindColor } from "../../constants";
 
 export const EnvironmentSelector: FunctionComponent = () => {
-  const { openEnvironmentsModal, selectEnvironment } = useActions();
-  const { selectedEnvironment, environmentList } = useOvermindState();
+  const {
+    openEnvironmentsModal,
+    selectEnvironment,
+  } = useActions().environments;
+  const {
+    selectedEnvironment,
+    environmentList,
+  } = useOvermindState().environments;
   const envSelectorAndDropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

@@ -17,7 +17,7 @@ export const EnvironmentList: FunctionComponent<EnvironmentListProps> = ({
     draftEnvironmentList,
     draftEnvironmentBeingEdited,
     draftEnvironmentIdsWithErrors,
-  } = useOvermindState();
+  } = useOvermindState().environments;
 
   return (
     <div className="pr-4">
