@@ -9,11 +9,15 @@ import {
   KafkaAuthentication,
   KafkaAuthenticationMethod,
 } from "../../models/environments";
+import { FaTrash } from "react-icons/fa";
 
 export const EnvironmentEditor: FunctionComponent = () => {
   const { draftEnvironmentBeingEdited } = useOvermindState().environments;
 
-  const { updateDraftEnvironment } = useActions().environments;
+  const {
+    updateDraftEnvironment,
+    removeDraftEnvironment,
+  } = useActions().environments;
 
   const onEnvironmentNameChange = useCallback(
     (value) => {
@@ -92,6 +96,10 @@ export const EnvironmentEditor: FunctionComponent = () => {
     },
     [draftEnvironmentBeingEdited, updateDraftEnvironment]
   );
+
+  const onRemove = useCallback(() => {
+    removeDraftEnvironment(draftEnvironmentBeingEdited!.id);
+  }, [draftEnvironmentBeingEdited, removeDraftEnvironment]);
 
   if (!draftEnvironmentBeingEdited) {
     return <div>Not editing an env</div>;
@@ -195,6 +203,13 @@ export const EnvironmentEditor: FunctionComponent = () => {
           </div>
         </div>
       )}
+      <button
+        onClick={onRemove}
+        className="btn btn-secondary mr-auto flex items-center mb-6"
+      >
+        <FaTrash className="flex-auto flex-shrink-0 flex-grow-0" />
+        <span className="ml-3 text-md">Remove</span>
+      </button>
     </div>
   );
 };

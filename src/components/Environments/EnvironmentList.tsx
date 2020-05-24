@@ -50,9 +50,9 @@ export const EnvironmentList: FunctionComponent<EnvironmentListProps> = ({
           </li>
         ))}
       </ul>
-      <hr className="my-3" />
+      {draftEnvironmentList.length !== 0 && <hr className="my-3" />}
       <ul>
-        <li className="">
+        <li>
           <button
             className="flex w-full rounded-sm py-2 px-3 items-center text-gray-900 hover:bg-gray-200 focus:outline-none focus:shadow-outline"
             onClick={onCreateNewEnvironment}

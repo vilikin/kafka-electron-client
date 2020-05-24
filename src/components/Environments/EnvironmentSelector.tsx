@@ -9,7 +9,6 @@ import { FaCaretDown, FaCircle, FaCog } from "react-icons/fa";
 import classNames from "classnames";
 import { useActions, useOvermindState } from "../../overmind";
 import { getTailwindColor } from "../../models/environments";
-import { defaultTailwindColor } from "../../constants";
 
 export const EnvironmentSelector: FunctionComponent = () => {
   const {
@@ -62,11 +61,11 @@ export const EnvironmentSelector: FunctionComponent = () => {
         className={`w-full p-1 bg-${
           selectedEnvironment
             ? getTailwindColor(selectedEnvironment.color)
-            : defaultTailwindColor
+            : "indigo"
         }-600 shadow-md border-b-2 flex justify-center border-${
           selectedEnvironment
             ? getTailwindColor(selectedEnvironment.color)
-            : defaultTailwindColor
+            : "indigo"
         }-400 transition-color duration-500`}
       >
         <div className="relative" ref={envSelectorAndDropdownRef}>
@@ -74,11 +73,11 @@ export const EnvironmentSelector: FunctionComponent = () => {
             className={`inline-flex items-center cursor-pointer text-white rounded-md py-1 px-3 focus:outline-none focus:bg-${
               selectedEnvironment
                 ? getTailwindColor(selectedEnvironment.color)
-                : defaultTailwindColor
+                : "indigo"
             }-500 hover:bg-${
               selectedEnvironment
                 ? getTailwindColor(selectedEnvironment.color)
-                : defaultTailwindColor
+                : "indigo"
             }-500`}
             onClick={handleEnvironmentSelectorClick}
           >
