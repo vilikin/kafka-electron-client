@@ -45,4 +45,41 @@
   @apply text-gray-500 border-gray-500;
 }
 
+.sidebar {
+  animation: fade-in-from-left 0.35s;
+  flex: 225px 0 0;
+  max-width: 255px;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+.spinner {
+  animation-name: spin;
+  animation-duration: 1500ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes spin {
+  from {
+    transform:rotate(0deg);
+  }
+  to {
+    transform:rotate(360deg);
+  }
+}
+
+@keyframes fade-in-from-left {
+  0% {
+    opacity: 0.5;
+    transform: translate3d(-3rem, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @tailwind utilities;

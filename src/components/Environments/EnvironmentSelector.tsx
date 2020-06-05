@@ -56,7 +56,7 @@ export const EnvironmentSelector: FunctionComponent = () => {
   );
 
   return (
-    <>
+    <div className="flex-auto flex-grow-0 flex-shrink-0">
       <div
         className={`w-full p-1 bg-${
           selectedEnvironment
@@ -134,6 +134,6 @@ export const EnvironmentSelector: FunctionComponent = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

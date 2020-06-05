@@ -2,10 +2,12 @@ import page from "page";
 import { Action } from "overmind";
 import * as queryString from "querystring";
 import { Environment } from "../models/environments";
-
+import { Admin, Consumer, KafkaConfig, Producer } from "kafkajs";
+import { KafkaClient } from "../kafka/kafka-client";
 const { remote } = window.require("electron");
 const fs = window.require("fs").promises;
 const path = window.require("path");
+
 const userDataPath = remote.app.getPath("userData");
 const configPath = path.join(userDataPath, "config.json");
 
@@ -40,3 +42,5 @@ export const store = {
     }
   },
 };
+
+export const kafka = new KafkaClient();
