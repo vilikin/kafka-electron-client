@@ -1,4 +1,5 @@
 import { derived } from "overmind";
+import { MessagePayload } from "../../kafka/kafka-client";
 
 export enum ConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -8,6 +9,7 @@ export enum ConnectionStatus {
 
 export interface KafkaTopic {
   id: string;
+  messages: MessagePayload[];
   consuming: boolean;
 }
 
@@ -15,6 +17,7 @@ export type ConnectionStateConnected = {
   status: ConnectionStatus.CONNECTED;
   environmentId: string;
   topics: { [key: string]: KafkaTopic };
+  isConsumerRebalancing: boolean;
 };
 
 export type ConnectionStateConnecting = {

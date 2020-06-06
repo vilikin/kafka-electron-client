@@ -1,14 +1,24 @@
 import { Environment, KafkaAuthenticationMethod } from "../models/environments";
-import { Admin, Kafka as KafkaType, KafkaConfig } from "kafkajs";
-import { KafkaTopic } from "../overmind/connection/state";
+import { Admin, Consumer, Kafka as KafkaType, KafkaConfig } from "kafkajs";
 const { Kafka } = window.require("kafkajs");
+
+export interface MessagePayload {
+  topic: string;
+  key: string;
+  value: string;
+  offset: string;
+}
 
 export interface KafkaClientCallbacks {
   onConnected: (environment: Environment) => void;
   onDisconnected: () => void;
   onError: (error: Error) => void;
   onConnecting: (environment: Environment) => void;
-  onTopicsReceived: (topics: KafkaTopic[]) => void;
+  onTopicsReceived: (topics: string[]) => void;
+  onMessageReceived: (message: MessagePayload) => void;
+  onConsumingStarted: (topic: string) => void;
+  onConsumingStopped: (topic: string) => void;
+  onConsumerRebalancingStateChange: (isRebalancing: boolean) => void;
 }
 
 export enum KafkaClientStatus {
@@ -41,6 +51,9 @@ export interface KafkaClientStateConnected {
 
   kafka: KafkaType;
   kafkaAdmin: Admin;
+  kafkaConsumer?: Consumer;
+
+  consumingTopics: string[];
 
   topicRefreshInterval: NodeJS.Timeout;
 }
@@ -101,6 +114,7 @@ export class KafkaClient {
         environment,
         kafka,
         kafkaAdmin,
+        consumingTopics: [],
         topicRefreshInterval,
       };
 
@@ -132,6 +146,12 @@ export class KafkaClient {
     clearInterval(this.state.topicRefreshInterval);
     await this.state.kafkaAdmin.disconnect();
 
+    this.state.consumingTopics = [];
+
+    if (this.state.kafkaConsumer) {
+      await this.state.kafkaConsumer.disconnect();
+    }
+
     this.state = {
       status: KafkaClientStatus.DISCONNECTED,
       callbacks: this.state.callbacks,
@@ -146,12 +166,75 @@ export class KafkaClient {
       (undefined as unknown) as { topics: string[] }
     );
 
-    const topicsEnriched = topics.topics.map((topic: { name: string }) => ({
-      id: topic.name,
-      consuming: false,
-    }));
+    const topicNames = topics.topics.map((topic) => topic.name);
 
-    this.state.callbacks.onTopicsReceived(topicsEnriched);
+    this.state.callbacks.onTopicsReceived(topicNames);
+  }
+
+  public async startConsumingTopic(topic: string): Promise<void> {
+    if (
+      this.state.status === KafkaClientStatus.CONNECTED &&
+      !this.state.consumingTopics.includes(topic)
+    ) {
+      this.state.consumingTopics.push(topic);
+      await this.restartConsumer();
+      this.state.callbacks.onConsumingStarted(topic);
+    }
+  }
+
+  public async stopConsumingTopic(topic: string): Promise<void> {
+    if (
+      this.state.status === KafkaClientStatus.CONNECTED &&
+      this.state.consumingTopics.includes(topic)
+    ) {
+      this.state.consumingTopics = this.state.consumingTopics.filter(
+        (consumedTopic) => consumedTopic !== topic
+      );
+
+      await this.restartConsumer();
+      this.state.callbacks.onConsumingStopped(topic);
+    }
+  }
+
+  public async restartConsumer(): Promise<void> {
+    if (this.state.status === KafkaClientStatus.CONNECTED) {
+      this.state.callbacks.onConsumerRebalancingStateChange(true);
+
+      if (this.state.kafkaConsumer) {
+        await this.state.kafkaConsumer.disconnect();
+      }
+
+      this.state.kafkaConsumer = this.state.kafka.consumer({
+        groupId: `kafka-ui-client-consumer-group-${this.state.environment.id}`,
+      });
+
+      await this.state.kafkaConsumer.connect();
+
+      await Promise.all(
+        this.state.consumingTopics.map(async (consumingTopic) => {
+          if (this.state.status === KafkaClientStatus.CONNECTED) {
+            await this.state.kafkaConsumer!.subscribe({
+              topic: consumingTopic,
+            });
+          }
+        })
+      );
+
+      await this.state.kafkaConsumer.run({
+        eachMessage: async ({ topic, partition, message }) => {
+          if (this.state.status === KafkaClientStatus.CONNECTED) {
+            this.state.callbacks.onMessageReceived({
+              topic,
+              key: message.key.toString(),
+              value: message.value.toString(),
+              offset: message.offset,
+            });
+          }
+        },
+      });
+
+      this.state.callbacks.onConsumerRebalancingStateChange(false);
+    }
   }
 }
 

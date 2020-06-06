@@ -19,11 +19,16 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
   });
 
   effects.kafka.init({
-    onTopicsReceived: actions.connection.setTopics,
-    onDisconnected: actions.connection.setDisconnected,
-    onConnecting: actions.connection.setConnecting,
-    onConnected: (environment) => actions.connection.setConnected(environment),
-    onError: actions.connection.setError,
+    onTopicsReceived: actions.connection.onTopicsReceived,
+    onDisconnected: actions.connection.onDisconnected,
+    onConnecting: actions.connection.onConnecting,
+    onConnected: (environment) => actions.connection.onConnected(environment),
+    onError: actions.connection.onError,
+    onMessageReceived: actions.connection.onMessageReceived,
+    onConsumingStarted: actions.connection.onConsumingStarted,
+    onConsumingStopped: actions.connection.onConsumingStopped,
+    onConsumerRebalancingStateChange:
+      actions.connection.onConsumerRebalancingStateChange,
   });
 
   effects.store.loadConfig().then((config) => {
