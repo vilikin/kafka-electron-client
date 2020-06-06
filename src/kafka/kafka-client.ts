@@ -204,6 +204,10 @@ export class KafkaClient {
         await this.state.kafkaConsumer.disconnect();
       }
 
+      if (this.state.consumingTopics.length === 0) {
+        return;
+      }
+
       this.state.kafkaConsumer = this.state.kafka.consumer({
         groupId: `kafka-ui-client-consumer-group-${this.state.environment.id}`,
       });
