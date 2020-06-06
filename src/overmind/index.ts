@@ -13,8 +13,10 @@ import * as routing from "./routing";
 import * as connection from "./connection";
 
 const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
-  effects.router.route("/", actions.routing.showMainPage);
-  effects.router.start();
+  effects.router.initialize({
+    "/": actions.routing.showMainPage,
+    "/topic/:topicId": actions.routing.showTopicPage,
+  });
 
   effects.kafka.init({
     onTopicsReceived: actions.connection.setTopics,

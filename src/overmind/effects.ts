@@ -1,9 +1,7 @@
 import page from "page";
-import { Action } from "overmind";
-import * as queryString from "querystring";
 import { Environment } from "../models/environments";
-import { Admin, Consumer, KafkaConfig, Producer } from "kafkajs";
 import { KafkaClient } from "../kafka/kafka-client";
+
 const { remote } = window.require("electron");
 const fs = window.require("fs").promises;
 const path = window.require("path");
@@ -15,15 +13,18 @@ export interface AppConfig {
   environments: Environment[];
 }
 
+export type Params = {
+  [key: string]: string;
+};
+
 export const router = {
-  route(route: string, action: Action) {
-    page(route, ({ params, querystring }) => {
-      const payload = Object.assign({}, params, queryString.parse(querystring));
-      action(payload);
+  initialize(routes: { [url: string]: (params: Params) => void }) {
+    Object.keys(routes).forEach((url) => {
+      page(url, ({ params }) => routes[url](params));
     });
+    page.start({ hashbang: true });
   },
-  start: () => page.start({ hashbang: true }),
-  open: (path: string) => page.show(path),
+  open: (url: string) => page.show(url),
 };
 
 export const store = {

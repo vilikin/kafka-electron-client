@@ -37,7 +37,12 @@ export const setDisconnected: Action = ({ state }) => {
   };
 };
 
-export const setConnected: Action<Environment> = ({ state }, environment) => {
+export const setConnected: Action<Environment> = (
+  { state, effects },
+  environment
+) => {
+  effects.router.open("/");
+
   state.connection.state = {
     status: ConnectionStatus.CONNECTED,
     environmentId: environment.id,

@@ -15,8 +15,11 @@ export const Sidebar: FunctionComponent = () => {
       </h3>
       <ul className="overflow-hidden">
         {topicList.map((topic) => (
-          <li>
-            <a className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline">
+          <li key={topic.id}>
+            <a
+              href={`#!topic/${topic.id}`}
+              className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline"
+            >
               <span className="text-sm font-bold text-gray-700 truncate break-all">
                 {topic.id}
               </span>
