@@ -20,8 +20,7 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
     onTopicsReceived: actions.connection.setTopics,
     onDisconnected: actions.connection.setDisconnected,
     onConnecting: actions.connection.setConnecting,
-    onConnected: (environment, topics) =>
-      actions.connection.setConnected({ environment, topics }),
+    onConnected: (environment) => actions.connection.setConnected(environment),
     onError: actions.connection.setError,
   });
 

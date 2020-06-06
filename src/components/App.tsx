@@ -8,7 +8,7 @@ import { ConnectingView } from "./ConnectingView";
 import { DisconnectedView } from "./DisconnectedView";
 
 export const App: FunctionComponent = () => {
-  const { status } = useOvermindState().connection;
+  const { status } = useOvermindState().connection.state;
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-x-hidden overflow-y-visible">

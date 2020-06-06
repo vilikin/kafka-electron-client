@@ -1,6 +1,7 @@
 import { Action, AsyncAction } from "overmind";
-import { ConnectionStatus } from "./state";
+import { ConnectionStatus, KafkaTopic } from "./state";
 import { Environment } from "../../models/environments";
+import * as _ from "lodash";
 
 export const connectToSelectedEnvironment: AsyncAction = async ({
   state,
@@ -9,8 +10,10 @@ export const connectToSelectedEnvironment: AsyncAction = async ({
 }) => {
   const { connection, environments } = state;
   if (environments.selectedEnvironment) {
-    if (connection.status === ConnectionStatus.CONNECTED) {
-      if (connection.environmentId === environments.selectedEnvironment.id) {
+    if (connection.state.status === ConnectionStatus.CONNECTED) {
+      if (
+        connection.state.environmentId === environments.selectedEnvironment.id
+      ) {
         return;
       }
 
@@ -22,51 +25,42 @@ export const connectToSelectedEnvironment: AsyncAction = async ({
 };
 
 export const disconnect: AsyncAction = async ({ effects, state }) => {
-  if (state.connection.status !== ConnectionStatus.DISCONNECTED) {
+  if (state.connection.state.status !== ConnectionStatus.DISCONNECTED) {
     await effects.kafka.disconnect();
   }
 };
 
 export const setDisconnected: Action = ({ state }) => {
-  state.connection = {
+  state.connection.state = {
     status: ConnectionStatus.DISCONNECTED,
     error: null,
   };
 };
 
-export const setConnected: Action<{
-  environment: Environment;
-  topics: string[];
-}> = ({ state }, payload) => {
-  state.connection = {
+export const setConnected: Action<Environment> = ({ state }, environment) => {
+  state.connection.state = {
     status: ConnectionStatus.CONNECTED,
-    topics: payload.topics.map((topic) => ({
-      id: topic,
-      consuming: false,
-    })),
-    environmentId: payload.environment.id,
+    environmentId: environment.id,
+    topics: {},
   };
 };
 
 export const setConnecting: Action<Environment> = ({ state }, environment) => {
-  state.connection = {
+  state.connection.state = {
     status: ConnectionStatus.CONNECTING,
     environmentId: environment.id,
   };
 };
 
 export const setError: Action<Error> = ({ state }, error) => {
-  state.connection = {
+  state.connection.state = {
     status: ConnectionStatus.DISCONNECTED,
     error: error.message,
   };
 };
 
-export const setTopics: Action<string[]> = ({ state }, topics) => {
-  if (state.connection.status === ConnectionStatus.CONNECTED) {
-    state.connection.topics = topics.map((topic) => ({
-      id: topic,
-      consuming: false,
-    }));
+export const setTopics: Action<KafkaTopic[]> = ({ state }, topics) => {
+  if (state.connection.state.status === ConnectionStatus.CONNECTED) {
+    state.connection.state.topics = _.keyBy(topics, "id");
   }
 };

@@ -1,13 +1,14 @@
 import { Environment, KafkaAuthenticationMethod } from "../models/environments";
 import { Admin, Kafka as KafkaType, KafkaConfig } from "kafkajs";
+import { KafkaTopic } from "../overmind/connection/state";
 const { Kafka } = window.require("kafkajs");
 
 export interface KafkaClientCallbacks {
-  onConnected: (environment: Environment, topics: string[]) => void;
+  onConnected: (environment: Environment) => void;
   onDisconnected: () => void;
   onError: (error: Error) => void;
   onConnecting: (environment: Environment) => void;
-  onTopicsReceived: (topics: string[]) => void;
+  onTopicsReceived: (topics: KafkaTopic[]) => void;
 }
 
 export enum KafkaClientStatus {
@@ -94,11 +95,6 @@ export class KafkaClient {
         this.updateTopics(kafkaAdmin);
       }, 10_000);
 
-      const topics = await kafkaAdmin.fetchTopicMetadata();
-      const topicNames = topics.topics.map(
-        (topic: { name: string }) => topic.name
-      );
-
       this.state = {
         status: KafkaClientStatus.CONNECTED,
         callbacks: this.state.callbacks,
@@ -108,7 +104,8 @@ export class KafkaClient {
         topicRefreshInterval,
       };
 
-      this.state.callbacks.onConnected(environment, topicNames);
+      this.state.callbacks.onConnected(environment);
+      await this.updateTopics(kafkaAdmin);
     } catch (e) {
       const error = new Error(
         `Failed to connect to ${environment.name} with KafkaClient. Cause: ${e.message}`
@@ -145,14 +142,16 @@ export class KafkaClient {
     if (this.state.status === KafkaClientStatus.UNINITIALISED) {
       throw new Error("Can't fetch topics with uninitialised KafkaClient");
     }
-
-    // @ts-ignore fetchTopicMetadata allows passing no args to fetch all topics
-    const topics = await kafkaAdmin.fetchTopicMetadata();
-    const topicNames = topics.topics.map(
-      (topic: { name: string }) => topic.name
+    const topics = await kafkaAdmin.fetchTopicMetadata(
+      (undefined as unknown) as { topics: string[] }
     );
 
-    this.state.callbacks.onTopicsReceived(topicNames);
+    const topicsEnriched = topics.topics.map((topic: { name: string }) => ({
+      id: topic.name,
+      consuming: false,
+    }));
+
+    this.state.callbacks.onTopicsReceived(topicsEnriched);
   }
 }
 

@@ -1,11 +1,10 @@
 import React, { FunctionComponent } from "react";
-import { FaPlusCircle } from "react-icons/fa";
 import { useOvermindState } from "../overmind";
 import { ConnectionStatus } from "../overmind/connection/state";
 
 export const Sidebar: FunctionComponent = () => {
-  const { connection } = useOvermindState();
-  if (connection.status !== ConnectionStatus.CONNECTED) {
+  const { state, topicList } = useOvermindState().connection;
+  if (state.status !== ConnectionStatus.CONNECTED) {
     throw new Error("Can't render Sidebar while not being connected");
   }
 
@@ -15,7 +14,7 @@ export const Sidebar: FunctionComponent = () => {
         Topics
       </h3>
       <ul className="overflow-hidden">
-        {connection.topics.map((topic) => (
+        {topicList.map((topic) => (
           <li>
             <a className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline">
               <span className="text-sm font-bold text-gray-700 truncate break-all">

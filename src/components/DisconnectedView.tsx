@@ -3,13 +3,12 @@ import { useOvermindState } from "../overmind";
 import { ConnectionStatus } from "../overmind/connection/state";
 
 export const DisconnectedView: FunctionComponent = () => {
-  const { connection } = useOvermindState();
+  const { state } = useOvermindState().connection;
 
   return (
     <div className="flex-1 flex h-full flex-col justify-center items-center">
       <p className="mt-8 text-lg text-gray-600 font-semibold">
-        {(connection.status === ConnectionStatus.DISCONNECTED &&
-          connection.error) ||
+        {(state.status === ConnectionStatus.DISCONNECTED && state.error) ||
           "Disconnected"}
       </p>
     </div>
