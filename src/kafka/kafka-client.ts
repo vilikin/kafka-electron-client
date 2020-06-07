@@ -205,6 +205,7 @@ export class KafkaClient {
       }
 
       if (this.state.consumingTopics.length === 0) {
+        this.state.callbacks.onConsumerRebalancingStateChange(false);
         return;
       }
 
