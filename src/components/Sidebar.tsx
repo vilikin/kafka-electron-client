@@ -22,7 +22,7 @@ export const Sidebar: FunctionComponent = () => {
             {topicsBeingConsumed.map((topic) => (
               <li key={topic.id}>
                 <a
-                  href={`#!topic/${topic.id}`}
+                  href={`#!/topic/${topic.id}`}
                   className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline"
                 >
                   <span className="text-sm font-bold text-gray-700 truncate break-all">
@@ -41,7 +41,7 @@ export const Sidebar: FunctionComponent = () => {
         {topicsNotBeingConsumed.map((topic) => (
           <li key={topic.id}>
             <a
-              href={`#!topic/${topic.id}`}
+              href={`#!/topic/${topic.id}`}
               className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline"
             >
               <span className="text-sm font-bold text-gray-700 truncate break-all">
