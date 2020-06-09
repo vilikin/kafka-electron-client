@@ -53,14 +53,14 @@ fun Application.module(testing: Boolean = false) {
                             println("Received: $text")
 
                             when (val messageFromClient = MessageFromClient.parse(text)) {
-                                is Connect -> kafkaClient.connect(
+                                is RequestConnect -> kafkaClient.connect(
                                     messageFromClient.environmentId,
                                     messageFromClient.brokers,
                                     messageFromClient.authenticationStrategy,
                                     messageFromClient.username,
                                     messageFromClient.password
                                 )
-                                is Disconnect -> kafkaClient.disconnect()
+                                is RequestDisconnect -> kafkaClient.disconnect()
                             }
                         }
 

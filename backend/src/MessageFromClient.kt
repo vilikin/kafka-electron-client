@@ -20,8 +20,8 @@ sealed class MessageFromClient(
         fun parse(string: String): MessageFromClient {
             val runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
                     .of(MessageFromClient::class.java, "type")
-                    .registerSubtype(Connect::class.java, Type.CONNECT.name)
-                    .registerSubtype(Disconnect::class.java, Type.DISCONNECT.name)
+                    .registerSubtype(RequestConnect::class.java, Type.CONNECT.name)
+                    .registerSubtype(RequestDisconnect::class.java, Type.DISCONNECT.name)
 
             return GsonBuilder()
                     .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
@@ -31,7 +31,7 @@ sealed class MessageFromClient(
     }
 }
 
-class Connect(
+class RequestConnect(
         val environmentId: String,
         val brokers: List<String>,
         val authenticationStrategy: AuthenticationStrategy,
@@ -39,4 +39,4 @@ class Connect(
         val password: String?
 ): MessageFromClient(Type.CONNECT)
 
-class Disconnect: MessageFromClient(Type.DISCONNECT)
+class RequestDisconnect: MessageFromClient(Type.DISCONNECT)
