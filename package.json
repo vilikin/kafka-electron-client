@@ -12,7 +12,7 @@
     "@types/react-dom": "^16.9.0",
     "classnames": "^2.2.6",
     "electron-is-dev": "^1.2.0",
-    "kafkajs": "^1.12.0",
+    "kafkajs": "1.13.0-beta.28",
     "lodash": "^4.17.15",
     "overmind": "^23.1.0",
     "overmind-react": "^24.1.0",
@@ -39,7 +39,9 @@
     "electron-dev": "concurrently \"overmind-devtools\" \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
     "postinstall": "electron-builder install-app-deps",
     "preelectron-pack": "yarn build",
-    "electron-pack": "electron-builder build -mw"
+    "preelectron-pack-mac": "yarn build",
+    "electron-pack": "electron-builder build -mw",
+    "electron-pack-mac": "electron-builder build -m"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -88,6 +90,13 @@
     "files": [
       "build/**/*",
       "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "./backend/build/libs",
+        "to": ".",
+        "filter": ["*.jar"]
+      }
     ],
     "directories": {
       "buildResources": "assets"
