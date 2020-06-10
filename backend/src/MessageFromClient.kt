@@ -12,16 +12,20 @@ sealed class MessageFromClient(
         val type: Type
 ) {
     enum class Type {
-        CONNECT,
-        DISCONNECT
+        REQUEST_CONNECT,
+        REQUEST_DISCONNECT,
+        SUBSCRIBE_TO_RECORDS_OF_TOPIC,
+        UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC
     }
 
     companion object {
         fun parse(string: String): MessageFromClient {
             val runtimeTypeAdapterFactory = RuntimeTypeAdapterFactory
                     .of(MessageFromClient::class.java, "type")
-                    .registerSubtype(RequestConnect::class.java, Type.CONNECT.name)
-                    .registerSubtype(RequestDisconnect::class.java, Type.DISCONNECT.name)
+                    .registerSubtype(RequestConnect::class.java, Type.REQUEST_CONNECT.name)
+                    .registerSubtype(RequestDisconnect::class.java, Type.REQUEST_DISCONNECT.name)
+                    .registerSubtype(SubscribeToRecordsOfTopic::class.java, Type.SUBSCRIBE_TO_RECORDS_OF_TOPIC.name)
+                    .registerSubtype(UnsubscribeFromRecordsOfTopic::class.java, Type.UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC.name)
 
             return GsonBuilder()
                     .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
@@ -37,6 +41,14 @@ class RequestConnect(
         val authenticationStrategy: AuthenticationStrategy,
         val username: String?,
         val password: String?
-): MessageFromClient(Type.CONNECT)
+): MessageFromClient(Type.REQUEST_CONNECT)
 
-class RequestDisconnect: MessageFromClient(Type.DISCONNECT)
+class RequestDisconnect: MessageFromClient(Type.REQUEST_DISCONNECT)
+
+class SubscribeToRecordsOfTopic(
+    val topic: String
+): MessageFromClient(Type.SUBSCRIBE_TO_RECORDS_OF_TOPIC)
+
+class UnsubscribeFromRecordsOfTopic(
+    val topic: String
+): MessageFromClient(Type.UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC)

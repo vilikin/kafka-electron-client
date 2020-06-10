@@ -61,6 +61,8 @@ fun Application.module(testing: Boolean = false) {
                                     messageFromClient.password
                                 )
                                 is RequestDisconnect -> kafkaClient.disconnect()
+                                is SubscribeToRecordsOfTopic -> kafkaClient.subscribeToRecordsOfTopic(messageFromClient.topic)
+                                is UnsubscribeFromRecordsOfTopic -> kafkaClient.unsubscribeFromRecordsOfTopic(messageFromClient.topic)
                             }
                         }
 

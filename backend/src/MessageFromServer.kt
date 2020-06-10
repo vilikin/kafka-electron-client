@@ -9,6 +9,15 @@ data class KafkaConsumerGroup(
     val id: String
 )
 
+data class KafkaRecord(
+    val topic: String,
+    val partition: Int,
+    val offset: Long,
+    val timestamp: Long,
+    val key: String?,
+    val value: String
+)
+
 sealed class MessageFromServer(
     val type: Type
 ) {
@@ -17,7 +26,10 @@ sealed class MessageFromServer(
         STATUS_CONNECTING,
         STATUS_DISCONNECTED,
         REFRESH_TOPICS,
-        REFRESH_CONSUMER_GROUPS
+        REFRESH_CONSUMER_GROUPS,
+        RECEIVE_RECORDS,
+        SUBSCRIBED_TO_RECORDS_OF_TOPIC,
+        UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC
     }
 }
 
@@ -40,3 +52,15 @@ class RefreshTopics(
 class RefreshConsumerGroups(
     val consumerGroups: List<KafkaConsumerGroup>
 ) : MessageFromServer(Type.REFRESH_CONSUMER_GROUPS)
+
+class SubscribedToRecordsOfTopic(
+    val topic: String
+) : MessageFromServer(Type.SUBSCRIBED_TO_RECORDS_OF_TOPIC)
+
+class UnsubscribedFromRecordsOfTopic(
+    val topic: String
+) : MessageFromServer(Type.UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC)
+
+class ReceiveRecords(
+    val records: List<KafkaRecord>
+) : MessageFromServer(Type.RECEIVE_RECORDS)
