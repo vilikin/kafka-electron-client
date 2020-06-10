@@ -3,6 +3,7 @@ package `in`.vilik
 import com.google.gson.Gson
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.WebSocketSession
+import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.KafkaAdminClient
@@ -12,11 +13,14 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
 
 sealed class KafkaClientState
 
 data class KafkaClientStateConnected(
     val environmentId: String,
+    val refreshTimer: Timer,
     val consumer: KafkaConsumer<String, String>,
     val producer: KafkaProducer<String, String>,
     val adminClient: AdminClient
@@ -38,6 +42,9 @@ class KafkaClient {
     fun removeSession(session: WebSocketSession) {
         println("Removing session")
         sessions.removeIf { it === session }
+        if (sessions.isEmpty()) {
+            disconnect()
+        }
     }
 
     private suspend fun broadcast(message: MessageFromServer) {
@@ -110,8 +117,16 @@ class KafkaClient {
                 consumer = KafkaConsumer<String, String>(consumerProps)
                 adminClient = KafkaAdminClient.create(adminClientProps)
 
+                val refreshTimer = fixedRateTimer(period = 10_000) {
+                    runBlocking {
+                        refreshTopics()
+                        refreshConsumerGroups()
+                    }
+                }
+
                 state = KafkaClientStateConnected(
                     environmentId,
+                    refreshTimer,
                     consumer,
                     producer,
                     adminClient
@@ -131,14 +146,43 @@ class KafkaClient {
         }
     }
 
-    suspend fun disconnect() {
-        if (state is KafkaClientStateConnected) {
-            (state as? KafkaClientStateConnected)?.consumer?.close()
-            (state as? KafkaClientStateConnected)?.producer?.close()
-            (state as? KafkaClientStateConnected)?.adminClient?.close()
+    private fun refreshTopics() {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            try {
+                val topics = connectedState.adminClient.listTopics().listings().get()
+                    .map { KafkaTopic(it.name(), it.isInternal) }
+
+                runBlocking { broadcast(RefreshTopics(topics)) }
+            } catch (e: Exception) {
+                println("Failed to refresh topics")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun refreshConsumerGroups() {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            try {
+                val consumerGroups = connectedState.adminClient.listConsumerGroups().all().get()
+                    .map { KafkaConsumerGroup(it.groupId()) }
+
+                runBlocking { broadcast(RefreshConsumerGroups(consumerGroups)) }
+            } catch (e: Exception) {
+                println("Failed to refresh topics")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun disconnect() {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            connectedState.refreshTimer.cancel()
+            connectedState.consumer.close()
+            connectedState.producer.close()
+            connectedState.adminClient.close()
 
             state = KafkaClientStateDisconnected()
-            broadcast(StatusDisconnected("Disconnect requested by client"))
+            runBlocking { broadcast(StatusDisconnected("Disconnect requested by client")) }
         }
     }
 }
