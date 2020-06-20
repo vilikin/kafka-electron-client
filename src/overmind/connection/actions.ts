@@ -1,8 +1,11 @@
 import { Action, AsyncAction } from "overmind";
-import { ConnectionStatus, KafkaTopic } from "./state";
-import { Environment } from "../../models/environments";
-import { MessagePayload } from "../../kafka/kafka-client";
+import { ConnectionStatus, KafkaTopicState } from "./state";
 import * as _ from "lodash";
+import {
+  KafkaConsumerGroup,
+  KafkaRecord,
+  KafkaTopic,
+} from "../../kafka/message-from-server";
 
 export const connectToSelectedEnvironment: AsyncAction = async ({
   state,
@@ -38,24 +41,24 @@ export const onDisconnected: Action = ({ state }) => {
   };
 };
 
-export const onConnected: Action<Environment> = (
-  { state, effects },
-  environment
+export const onConnected: Action<string> = (
+  { state, effects, actions },
+  environmentId
 ) => {
-  effects.router.open("/");
+  actions.routing.showMainPage();
 
   state.connection.state = {
     status: ConnectionStatus.CONNECTED,
-    environmentId: environment.id,
+    environmentId,
     topics: {},
-    isConsumerRebalancing: false,
+    consumerGroups: {},
   };
 };
 
-export const onConnecting: Action<Environment> = ({ state }, environment) => {
+export const onConnecting: Action<string> = ({ state }, environmentId) => {
   state.connection.state = {
     status: ConnectionStatus.CONNECTING,
-    environmentId: environment.id,
+    environmentId,
   };
 };
 
@@ -66,20 +69,22 @@ export const onError: Action<Error> = ({ state }, error) => {
   };
 };
 
-export const onTopicsReceived: Action<string[]> = (
+export const onRefreshTopics: Action<KafkaTopic[]> = (
   { state: rootState },
   topics
 ) => {
   const {
     connection: { state },
   } = rootState;
-  const newTopicsObj: { [key: string]: KafkaTopic } = {};
+
+  const newTopicsObj: { [key: string]: KafkaTopicState } = {};
 
   topics.forEach((topic) => {
     if (state.status === ConnectionStatus.CONNECTED) {
-      newTopicsObj[topic] = state.topics[topic] ?? {
-        id: topic,
-        messages: [],
+      newTopicsObj[topic.id] = state.topics[topic.id] ?? {
+        id: topic.id,
+        isInternal: topic.isInternal,
+        records: [],
         consuming: false,
       };
     }
@@ -93,23 +98,41 @@ export const onTopicsReceived: Action<string[]> = (
   }
 };
 
-export const onMessageReceived: Action<MessagePayload> = (
+export const onRefreshConsumerGroups: Action<KafkaConsumerGroup[]> = (
   { state: rootState },
-  message
+  consumerGroups
 ) => {
   const {
     connection: { state },
   } = rootState;
 
   if (state.status === ConnectionStatus.CONNECTED) {
-    state.topics[message.topic].messages = _.takeRight(
-      [...state.topics[message.topic].messages, message],
-      100
-    );
+    rootState.connection.state = {
+      ...state,
+      consumerGroups: _.keyBy(consumerGroups, "id"),
+    };
   }
 };
 
-export const onConsumingStarted: Action<string> = (
+export const onRecordsReceived: Action<KafkaRecord[]> = (
+  { state: rootState },
+  records
+) => {
+  const {
+    connection: { state },
+  } = rootState;
+
+  if (state.status === ConnectionStatus.CONNECTED) {
+    records.forEach((record) => {
+      state.topics[record.topic].records = _.takeRight(
+        [...state.topics[record.topic].records, record],
+        100
+      );
+    });
+  }
+};
+
+export const onSubscribedToRecordsOfTopic: Action<string> = (
   { state: rootState },
   topic
 ) => {
@@ -125,7 +148,7 @@ export const onConsumingStarted: Action<string> = (
   }
 };
 
-export const onConsumingStopped: Action<string> = (
+export const onUnsubscribedFromRecordsOfTopic: Action<string> = (
   { state: rootState },
   topic
 ) => {
@@ -137,22 +160,6 @@ export const onConsumingStopped: Action<string> = (
     state.topics[topic] = {
       ...state.topics[topic],
       consuming: false,
-    };
-  }
-};
-
-export const onConsumerRebalancingStateChange: Action<boolean> = (
-  { state: rootState },
-  isRebalancing
-) => {
-  const {
-    connection: { state },
-  } = rootState;
-
-  if (state.status === ConnectionStatus.CONNECTED) {
-    rootState.connection.state = {
-      ...state,
-      isConsumerRebalancing: isRebalancing,
     };
   }
 };

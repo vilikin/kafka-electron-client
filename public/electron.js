@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 const isDev = require("electron-is-dev");
+const tcpPortUsed = require("tcp-port-used");
 
 const backendJarPath = isDev
   ? path.join(__dirname, "../backend/build/libs/kafkaui-0.0.1-all.jar")
@@ -16,6 +17,7 @@ if (!fs.existsSync(backendJarPath)) {
 }
 
 try {
+  console.log("Spawning backend process");
   const backend = spawn("java", ["-jar", backendJarPath]);
   const errorLog = [];
   const normalLog = [];
@@ -72,7 +74,13 @@ function createWindow() {
   mainWindow.on("closed", () => (mainWindow = null));
 }
 
-app.on("ready", createWindow);
+app.on("ready", async () => {
+  console.log("Waiting till backend WebSocket is ready");
+  // TODO what to do if port doesnt get used
+  await tcpPortUsed.waitUntilUsed(37452, 500, 10_000);
+  console.log("Backend ready, opening window");
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

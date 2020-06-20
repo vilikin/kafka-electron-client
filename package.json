@@ -16,12 +16,12 @@
     "lodash": "^4.17.15",
     "overmind": "^23.1.0",
     "overmind-react": "^24.1.0",
-    "page": "^1.11.6",
     "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-icons": "^3.10.0",
     "react-scripts": "3.4.1",
+    "tcp-port-used": "^1.0.1",
     "typescript": "~3.7.2",
     "uuid": "^8.0.0"
   },
@@ -95,7 +95,9 @@
       {
         "from": "./backend/build/libs",
         "to": ".",
-        "filter": ["*.jar"]
+        "filter": [
+          "*.jar"
+        ]
       }
     ],
     "directories": {

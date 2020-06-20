@@ -8,20 +8,22 @@ import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.KafkaAdminClient
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.fixedRateTimer
 
 sealed class KafkaClientState
 
 data class KafkaClientStateConnected(
     val environmentId: String,
-    val subscribedToRecordsOfTopics: MutableList<String>,
     val recordPollingJob: Job,
     val refreshTimer: Timer,
     val consumer: KafkaConsumer<String, String>,
@@ -90,7 +92,9 @@ class KafkaClient {
                     ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
                     ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
                     ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokers.joinToString(),
-                    ProducerConfig.CLIENT_ID_CONFIG to "kafka-ui-client-$environmentId"
+                    ProducerConfig.CLIENT_ID_CONFIG to "kafka-ui-client-$environmentId",
+                    ProducerConfig.RETRIES_CONFIG to "5",
+                    ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG to "5000"
                 )
             )
 
@@ -99,15 +103,19 @@ class KafkaClient {
                     ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name,
                     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name,
                     ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to brokers.joinToString(),
-                    ConsumerConfig.GROUP_ID_CONFIG to "kafka-ui-client-$environmentId",
-                    ConsumerConfig.CLIENT_ID_CONFIG to "kafka-ui-client-$environmentId"
+                    ConsumerConfig.GROUP_ID_CONFIG to "kafka-ui-group-$environmentId",
+                    ConsumerConfig.CLIENT_ID_CONFIG to "kafka-ui-client-$environmentId",
+                    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false"
                 )
             )
 
             val adminClientProps = combineWithAuthProps(
                 mutableMapOf(
                     AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to brokers.joinToString(),
-                    AdminClientConfig.CLIENT_ID_CONFIG to "kafka-ui-client-$environmentId"
+                    AdminClientConfig.CLIENT_ID_CONFIG to "kafka-ui-client-$environmentId",
+                    AdminClientConfig.RETRIES_CONFIG to "5",
+                    AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG to "5000",
+                    AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG to "5000"
                 )
             )
 
@@ -117,10 +125,16 @@ class KafkaClient {
 
             try {
                 producer = KafkaProducer<String, String>(producerProps)
+                println("Producer ready?")
                 consumer = KafkaConsumer<String, String>(consumerProps)
+                println("Consumer ready?")
                 adminClient = KafkaAdminClient.create(adminClientProps)
+                println("Adm ready?")
 
-                val refreshTimer = fixedRateTimer(period = 30_000) {
+                // Try an operation to see if connection works
+                adminClient.listTopics().names().get()
+
+                val refreshTimer = fixedRateTimer(initialDelay = 500, period = 15_000) {
                     runBlocking {
                         refreshTopics()
                         refreshConsumerGroups()
@@ -130,8 +144,8 @@ class KafkaClient {
                 val job = GlobalScope.launch {
                     while (true) {
                         (state as? KafkaClientStateConnected)?.let { connectedState ->
-                            if (connectedState.subscribedToRecordsOfTopics.isNotEmpty()) {
-                                synchronized(connectedState.consumer) {
+                            synchronized(connectedState.consumer) {
+                                if (connectedState.consumer.subscription().isNotEmpty()) {
                                     val records = connectedState.consumer.poll(Duration.ofMillis(500))
                                         .map {
                                             KafkaRecord(
@@ -145,6 +159,7 @@ class KafkaClient {
                                         }
 
                                     if (records.isNotEmpty()) {
+                                        connectedState.consumer.commitAsync()
                                         broadcast(ReceiveRecords(records))
                                     }
                                 }
@@ -157,7 +172,6 @@ class KafkaClient {
 
                 state = KafkaClientStateConnected(
                     environmentId,
-                    mutableListOf(),
                     job,
                     refreshTimer,
                     consumer,
@@ -181,30 +195,26 @@ class KafkaClient {
 
     fun subscribeToRecordsOfTopic(topic: String) {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
-            if (!connectedState.subscribedToRecordsOfTopics.contains(topic)) {
-                connectedState.subscribedToRecordsOfTopics.add(topic)
-                synchronized(connectedState.consumer) {
-                    connectedState.consumer.subscribe(connectedState.subscribedToRecordsOfTopics)
+            synchronized(connectedState.consumer) {
+                if (!connectedState.consumer.subscription().contains(topic)) {
+                    val topicsToSubscribe = connectedState.consumer.subscription() + topic
+                    connectedState.consumer.unsubscribe()
+                    connectedState.consumer.subscribe(topicsToSubscribe)
+                    broadcast(SubscribedToRecordsOfTopic(topic))
                 }
-                broadcast(SubscribedToRecordsOfTopic(topic))
             }
         }
     }
 
     fun unsubscribeFromRecordsOfTopic(topic: String) {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
-            if (connectedState.subscribedToRecordsOfTopics.contains(topic)) {
-                connectedState.subscribedToRecordsOfTopics.remove(topic)
-
-                synchronized(connectedState.consumer) {
-                    if (connectedState.subscribedToRecordsOfTopics.isEmpty()) {
-                        connectedState.consumer.unsubscribe()
-                    } else {
-                        connectedState.consumer.subscribe(connectedState.subscribedToRecordsOfTopics)
-                    }
+            synchronized(connectedState.consumer) {
+                if (connectedState.consumer.subscription().contains(topic)) {
+                    val newTopics = connectedState.consumer.subscription() - topic
+                    connectedState.consumer.unsubscribe()
+                    connectedState.consumer.subscribe(newTopics)
+                    broadcast(UnsubscribedFromRecordsOfTopic(topic))
                 }
-
-                broadcast(UnsubscribedFromRecordsOfTopic(topic))
             }
         }
     }
@@ -241,7 +251,11 @@ class KafkaClient {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
             connectedState.refreshTimer.cancel()
             connectedState.recordPollingJob.cancel()
-            connectedState.consumer.close()
+
+            synchronized(connectedState.consumer) {
+                connectedState.consumer.close()
+            }
+
             connectedState.producer.close()
             connectedState.adminClient.close()
 

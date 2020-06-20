@@ -1,6 +1,6 @@
 import page from "page";
 import { Environment } from "../models/environments";
-import { KafkaClient } from "../kafka/kafka-client";
+import { KafkaBackendClient } from "../kafka/kafka-backend-client";
 
 const { remote } = window.require("electron");
 const fs = window.require("fs").promises;
@@ -15,16 +15,6 @@ export interface AppConfig {
 
 export type Params = {
   [key: string]: string;
-};
-
-export const router = {
-  initialize(routes: { [url: string]: (params: Params) => void }) {
-    Object.keys(routes).forEach((url) => {
-      page(url, ({ params }) => routes[url](params));
-    });
-    page.start({ hashbang: true });
-  },
-  open: (url: string) => page.show(url),
 };
 
 export const store = {
@@ -44,4 +34,4 @@ export const store = {
   },
 };
 
-export const kafka = new KafkaClient();
+export const kafka = new KafkaBackendClient();

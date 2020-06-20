@@ -17,11 +17,11 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   const topic = connection.state.topics[topicName];
 
   const startConsuming = useCallback(async () => {
-    await kafka.startConsumingTopic(topicName);
+    await kafka.subscribeToTopic(topicName);
   }, [kafka, topicName]);
 
   const stopConsuming = useCallback(async () => {
-    await kafka.stopConsumingTopic(topicName);
+    await kafka.unsubscribeFromTopic(topicName);
   }, [kafka, topicName]);
 
   return (
@@ -29,20 +29,19 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
       <p className="mt-8 text-lg text-gray-600 font-semibold">
         Topic: {topic.id}
       </p>
-      {!connection.state.isConsumerRebalancing &&
-        (!topic.consuming ? (
-          <button onClick={startConsuming} className="btn btn-primary">
-            Consume
-          </button>
-        ) : (
-          <button onClick={stopConsuming} className="btn btn-primary">
-            Stop
-          </button>
-        ))}
+      {!topic.consuming ? (
+        <button onClick={startConsuming} className="btn btn-primary">
+          Consume
+        </button>
+      ) : (
+        <button onClick={stopConsuming} className="btn btn-primary">
+          Stop
+        </button>
+      )}
       <ul>
-        {topic.messages.map((message) => (
-          <li key={message.offset}>
-            <pre>{message.value}</pre>
+        {topic.records.map((record) => (
+          <li key={record.topic + record.partition + record.offset}>
+            <pre>{record.value}</pre>
           </li>
         ))}
       </ul>

@@ -50,17 +50,17 @@ const colorEnumMap = {
 };
 
 export enum KafkaAuthenticationMethod {
-  SASL = "SASL",
+  SASL_PLAIN = "SASL_PLAIN",
   NONE = "NONE",
 }
 
 const authenticationMethodToLabel = {
   [KafkaAuthenticationMethod.NONE]: "No authentication",
-  [KafkaAuthenticationMethod.SASL]: "SASL PLAIN",
+  [KafkaAuthenticationMethod.SASL_PLAIN]: "SASL PLAIN",
 };
 
 export interface KafkaAuthenticationSasl {
-  method: KafkaAuthenticationMethod.SASL;
+  method: KafkaAuthenticationMethod.SASL_PLAIN;
   username: string;
   password: string;
 }
@@ -107,7 +107,7 @@ export function draftEnvironmentContainsErrors(env: EnvironmentDraft): boolean {
   return (
     env.name.length === 0 ||
     env.brokers.length === 0 ||
-    (env.authentication.method === KafkaAuthenticationMethod.SASL &&
+    (env.authentication.method === KafkaAuthenticationMethod.SASL_PLAIN &&
       (env.authentication.username.length === 0 ||
         env.authentication.password.length === 0))
   );

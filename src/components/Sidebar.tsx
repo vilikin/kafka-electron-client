@@ -1,9 +1,11 @@
 import React, { FunctionComponent } from "react";
-import { useOvermindState } from "../overmind";
+import { useActions, useOvermindState } from "../overmind";
 import { ConnectionStatus } from "../overmind/connection/state";
 
 export const Sidebar: FunctionComponent = () => {
   const { state, topicList } = useOvermindState().connection;
+  const { showTopicPage } = useActions().routing;
+
   if (state.status !== ConnectionStatus.CONNECTED) {
     throw new Error("Can't render Sidebar while not being connected");
   }
@@ -21,14 +23,14 @@ export const Sidebar: FunctionComponent = () => {
           <ul className="overflow-hidden mb-3">
             {topicsBeingConsumed.map((topic) => (
               <li key={topic.id}>
-                <a
-                  href={`#!/topic/${topic.id}`}
+                <button
+                  onClick={() => showTopicPage(topic.id)}
                   className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline"
                 >
                   <span className="text-sm font-bold text-gray-700 truncate break-all">
                     {topic.id}
                   </span>
-                </a>
+                </button>
               </li>
             ))}
           </ul>
@@ -40,14 +42,14 @@ export const Sidebar: FunctionComponent = () => {
       <ul className="overflow-hidden">
         {topicsNotBeingConsumed.map((topic) => (
           <li key={topic.id}>
-            <a
-              href={`#!/topic/${topic.id}`}
+            <button
+              onClick={() => showTopicPage(topic.id)}
               className="flex w-full rounded-sm py-2 px-3 cursor-pointer items-center hover:bg-gray-200 focus:outline-none focus:shadow-outline"
             >
               <span className="text-sm font-bold text-gray-700 truncate break-all">
                 {topic.id}
               </span>
-            </a>
+            </button>
           </li>
         ))}
       </ul>

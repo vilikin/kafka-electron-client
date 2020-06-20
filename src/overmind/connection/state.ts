@@ -1,5 +1,9 @@
 import { derived } from "overmind";
-import { MessagePayload } from "../../kafka/kafka-client";
+import {
+  KafkaConsumerGroup,
+  KafkaRecord,
+  KafkaTopic,
+} from "../../kafka/message-from-server";
 
 export enum ConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -7,17 +11,16 @@ export enum ConnectionStatus {
   DISCONNECTED = "DISCONNECTED",
 }
 
-export interface KafkaTopic {
-  id: string;
-  messages: MessagePayload[];
+export interface KafkaTopicState extends KafkaTopic {
+  records: KafkaRecord[];
   consuming: boolean;
 }
 
 export type ConnectionStateConnected = {
   status: ConnectionStatus.CONNECTED;
   environmentId: string;
-  topics: { [key: string]: KafkaTopic };
-  isConsumerRebalancing: boolean;
+  topics: { [key: string]: KafkaTopicState };
+  consumerGroups: { [key: string]: KafkaConsumerGroup };
 };
 
 export type ConnectionStateConnecting = {
@@ -37,7 +40,8 @@ export type ConnectionState =
 
 export type ConnectionRootState = {
   state: ConnectionState;
-  topicList: KafkaTopic[];
+  topicList: KafkaTopicState[];
+  consumerGroupList: KafkaConsumerGroup[];
 };
 
 export const state: ConnectionRootState = {
@@ -45,9 +49,16 @@ export const state: ConnectionRootState = {
     status: ConnectionStatus.DISCONNECTED,
     error: null,
   },
-  topicList: derived<ConnectionRootState, KafkaTopic[]>((state) => {
+  topicList: derived<ConnectionRootState, KafkaTopicState[]>((state) => {
     return state.state.status === ConnectionStatus.CONNECTED
       ? Object.values(state.state.topics)
       : [];
   }),
+  consumerGroupList: derived<ConnectionRootState, KafkaConsumerGroup[]>(
+    (state) => {
+      return state.state.status === ConnectionStatus.CONNECTED
+        ? Object.values(state.state.consumerGroups)
+        : [];
+    }
+  ),
 };

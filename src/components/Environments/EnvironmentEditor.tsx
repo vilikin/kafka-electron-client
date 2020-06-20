@@ -46,9 +46,9 @@ export const EnvironmentEditor: FunctionComponent = () => {
   const onAuthenticationMethodChange = useCallback(
     (value) => {
       const authentication: KafkaAuthentication =
-        value === KafkaAuthenticationMethod.SASL
+        value === KafkaAuthenticationMethod.SASL_PLAIN
           ? {
-              method: KafkaAuthenticationMethod.SASL,
+              method: KafkaAuthenticationMethod.SASL_PLAIN,
               username: "",
               password: "",
             }
@@ -65,7 +65,7 @@ export const EnvironmentEditor: FunctionComponent = () => {
     (value) => {
       if (
         draftEnvironmentBeingEdited!.authentication.method ===
-        KafkaAuthenticationMethod.SASL
+        KafkaAuthenticationMethod.SASL_PLAIN
       ) {
         updateDraftEnvironment({
           ...draftEnvironmentBeingEdited!,
@@ -83,7 +83,7 @@ export const EnvironmentEditor: FunctionComponent = () => {
     (value) => {
       if (
         draftEnvironmentBeingEdited!.authentication.method ===
-        KafkaAuthenticationMethod.SASL
+        KafkaAuthenticationMethod.SASL_PLAIN
       ) {
         updateDraftEnvironment({
           ...draftEnvironmentBeingEdited!,
@@ -168,7 +168,7 @@ export const EnvironmentEditor: FunctionComponent = () => {
         </div>
       </div>
       {draftEnvironmentBeingEdited.authentication.method ===
-        KafkaAuthenticationMethod.SASL && (
+        KafkaAuthenticationMethod.SASL_PLAIN && (
         <div className="flex flex-wrap -mx-3 mb-6">
           <div className="w-1/2 px-3 mb-0">
             <TextInput

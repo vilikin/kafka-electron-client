@@ -13,22 +13,18 @@ import * as routing from "./routing";
 import * as connection from "./connection";
 
 const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
-  effects.router.initialize({
-    "/": actions.routing.showMainPage,
-    "/topic/:topicId": actions.routing.showTopicPage,
-  });
-
   effects.kafka.init({
-    onTopicsReceived: actions.connection.onTopicsReceived,
-    onDisconnected: actions.connection.onDisconnected,
+    onConnected: actions.connection.onConnected,
     onConnecting: actions.connection.onConnecting,
-    onConnected: (environment) => actions.connection.onConnected(environment),
+    onDisconnected: actions.connection.onDisconnected,
+    onRefreshConsumerGroups: actions.connection.onRefreshConsumerGroups,
+    onRefreshTopics: actions.connection.onRefreshTopics,
+    onSubscribedToRecordsOfTopic:
+      actions.connection.onSubscribedToRecordsOfTopic,
+    onUnsubscribedFromRecordsOfTopic:
+      actions.connection.onUnsubscribedFromRecordsOfTopic,
+    onRecordsReceived: actions.connection.onRecordsReceived,
     onError: actions.connection.onError,
-    onMessageReceived: actions.connection.onMessageReceived,
-    onConsumingStarted: actions.connection.onConsumingStarted,
-    onConsumingStopped: actions.connection.onConsumingStopped,
-    onConsumerRebalancingStateChange:
-      actions.connection.onConsumerRebalancingStateChange,
   });
 
   effects.store.loadConfig().then((config) => {
