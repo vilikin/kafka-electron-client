@@ -125,11 +125,8 @@ class KafkaClient {
 
             try {
                 producer = KafkaProducer<String, String>(producerProps)
-                println("Producer ready?")
                 consumer = KafkaConsumer<String, String>(consumerProps)
-                println("Consumer ready?")
                 adminClient = KafkaAdminClient.create(adminClientProps)
-                println("Adm ready?")
 
                 // Try an operation to see if connection works
                 adminClient.listTopics().names().get()
