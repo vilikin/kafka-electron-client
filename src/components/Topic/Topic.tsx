@@ -1,4 +1,9 @@
-import React, { FunctionComponent, useCallback } from "react";
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { useEffects, useOvermindState } from "../../overmind";
 import { ConnectionStatus } from "../../overmind/connection/state";
 import {
@@ -9,6 +14,7 @@ import {
   FaStop,
 } from "react-icons/fa";
 import { EnvironmentAwareButton } from "../Common/EnvironmentAwareButton";
+import { Record } from "./Record";
 
 export interface TopicProps {
   topicName: string;
@@ -17,6 +23,19 @@ export interface TopicProps {
 export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   const { connection } = useOvermindState();
   const { kafka } = useEffects();
+  const recordsDiv = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when new records arrive
+  const scrollEffectDeps =
+    connection.state.status === ConnectionStatus.CONNECTED
+      ? [connection.state.topics[topicName].records]
+      : [];
+
+  useEffect(() => {
+    if (recordsDiv && recordsDiv.current) {
+      recordsDiv.current.scrollTop = recordsDiv.current.scrollHeight;
+    }
+  }, scrollEffectDeps);
 
   if (connection.state.status !== ConnectionStatus.CONNECTED) {
     throw new Error("Not connected");
@@ -33,13 +52,13 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   }, [kafka, topicName]);
 
   return (
-    <div className="flex-1 flex h-full flex-col p-2 px-4">
+    <div className="flex-1 flex h-full flex-col p-2 px-4 overflow-hidden">
       <h1 className="text-lg text-gray-700 font-semibold">{topic.id}</h1>
-      <div className="text-gray-600 mb-2">
+      <div className="text-gray-600 mb-3">
         Partitions: 2 | Replicas: 3 | Total records: 10 035 | Available records:
         456
       </div>
-      <div className="flex flex-row pb-3 border-b border-gray-200">
+      <div className="flex flex-row mb-3 ">
         {topic.consuming ? (
           <EnvironmentAwareButton
             text="Unsubscribe"
@@ -65,13 +84,14 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
           disabled
         />
       </div>
-      <ul>
+      <div className="h-full overflow-y-scroll" ref={recordsDiv}>
         {topic.records.map((record) => (
-          <li key={record.topic + record.partition + record.offset}>
-            <pre>{record.value}</pre>
-          </li>
+          <Record
+            key={record.topic + record.partition + record.offset}
+            record={record}
+          />
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
