@@ -44,11 +44,11 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   const topic = connection.state.topics[topicName];
 
   const startConsuming = useCallback(async () => {
-    await kafka.subscribeToTopic(topicName);
+    await kafka.subscribeToRecordsOfTopic(topicName);
   }, [kafka, topicName]);
 
   const stopConsuming = useCallback(async () => {
-    await kafka.unsubscribeFromTopic(topicName);
+    await kafka.unsubscribeFromRecordsOfTopic(topicName);
   }, [kafka, topicName]);
 
   return (

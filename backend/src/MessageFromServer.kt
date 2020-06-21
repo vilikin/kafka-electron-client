@@ -37,7 +37,9 @@ sealed class MessageFromServer(
         REFRESH_CONSUMER_GROUPS,
         RECEIVE_RECORDS,
         SUBSCRIBED_TO_RECORDS_OF_TOPIC,
-        UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC
+        UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC,
+        SUBSCRIBED_TO_OFFSETS_OF_TOPIC,
+        UNSUBSCRIBED_FROM_OFFSETS_OF_TOPIC
     }
 }
 
@@ -72,3 +74,11 @@ class UnsubscribedFromRecordsOfTopic(
 class ReceiveRecords(
     val records: List<KafkaRecord>
 ) : MessageFromServer(Type.RECEIVE_RECORDS)
+
+class SubscribedToOffsetsOfTopic(
+    val topic: String
+) : MessageFromServer(Type.SUBSCRIBED_TO_OFFSETS_OF_TOPIC)
+
+class UnsubscribedFromOffsetsOfTopic(
+    val topic: String
+) : MessageFromServer(Type.UNSUBSCRIBED_FROM_OFFSETS_OF_TOPIC)

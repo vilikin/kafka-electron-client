@@ -27,7 +27,8 @@ data class KafkaClientStateConnected(
     val refreshTimer: Timer,
     val consumer: KafkaConsumer<String, String>,
     val producer: KafkaProducer<String, String>,
-    val adminClient: AdminClient
+    val adminClient: AdminClient,
+    val subscribedToOffsetsOfTopics: MutableSet<String>
 ) : KafkaClientState()
 
 data class KafkaClientStateConnecting(val environmentId: String) : KafkaClientState()
@@ -96,7 +97,7 @@ class KafkaClient {
                 // Try an operation to see if connection works
                 adminClient.listTopics().names().get()
 
-                val refreshTimer = fixedRateTimer(initialDelay = 500, period = 15_000) {
+                val refreshTimer = fixedRateTimer(initialDelay = 500, period = 60_000) {
                     runBlocking {
                         refreshTopics()
                         refreshConsumerGroups()
@@ -111,7 +112,8 @@ class KafkaClient {
                     refreshTimer,
                     consumer,
                     producer,
-                    adminClient
+                    adminClient,
+                    mutableSetOf()
                 )
 
                 broadcast(StatusConnected(environmentId))
@@ -182,6 +184,20 @@ class KafkaClient {
                     broadcast(UnsubscribedFromRecordsOfTopic(topic))
                 }
             }
+        }
+    }
+
+    fun subscribeToOffsetsOfTopic(topic: String) {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            connectedState.subscribedToOffsetsOfTopics.add(topic)
+            broadcast(SubscribedToOffsetsOfTopic(topic))
+        }
+    }
+
+    fun unsubscribeFromOffsetsOfTopic(topic: String) {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            connectedState.subscribedToOffsetsOfTopics.remove(topic)
+            broadcast(UnsubscribedFromOffsetsOfTopic(topic))
         }
     }
 
@@ -268,7 +284,7 @@ class KafkaClient {
                 ) else mutableMapOf()
 
             authProps.putAll(map)
-            return authProps;
+            return authProps
         }
 
         val producerProps = combineWithAuthProps(

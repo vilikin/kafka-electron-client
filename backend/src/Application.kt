@@ -32,8 +32,7 @@ fun main(args: Array<String>) {
 
 @ExperimentalCoroutinesApi
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+fun Application.module() {
     install(CORS) {
         anyHost()
         HttpMethod.DefaultMethods.forEach { method(it) }
@@ -69,6 +68,8 @@ fun Application.module(testing: Boolean = false) {
                                 is RequestDisconnect -> kafkaClient.disconnect()
                                 is SubscribeToRecordsOfTopic -> kafkaClient.subscribeToRecordsOfTopic(messageFromClient.topic)
                                 is UnsubscribeFromRecordsOfTopic -> kafkaClient.unsubscribeFromRecordsOfTopic(messageFromClient.topic)
+                                is SubscribeToOffsetsOfTopic -> kafkaClient.subscribeToOffsetsOfTopic(messageFromClient.topic)
+                                is UnsubscribeFromOffsetsOfTopic -> kafkaClient.unsubscribeFromOffsetsOfTopic(messageFromClient.topic)
                             }
                         }
 
