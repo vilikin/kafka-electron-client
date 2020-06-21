@@ -3,13 +3,12 @@ import { useEffects, useOvermindState } from "../../overmind";
 import { ConnectionStatus } from "../../overmind/connection/state";
 import {
   FaPlay,
-  FaShare,
   FaShareSquare,
   FaTachometerAlt,
-  FaTrash,
   FaAngleDoubleRight,
   FaStop,
 } from "react-icons/fa";
+import { EnvironmentAwareButton } from "../Common/EnvironmentAwareButton";
 
 export interface TopicProps {
   topicName: string;
@@ -34,7 +33,7 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   }, [kafka, topicName]);
 
   return (
-    <div className="flex-1 flex h-full flex-col p-2">
+    <div className="flex-1 flex h-full flex-col p-2 px-4">
       <h1 className="text-lg text-gray-700 font-semibold">{topic.id}</h1>
       <div className="text-gray-600 mb-2">
         Partitions: 2 | Replicas: 3 | Total records: 10 035 | Available records:
@@ -42,34 +41,29 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
       </div>
       <div className="flex flex-row pb-3 border-b border-gray-200">
         {topic.consuming ? (
-          <button
-            className="btn btn-secondary flex items-center mr-2"
+          <EnvironmentAwareButton
+            text="Unsubscribe"
+            Icon={FaStop}
             onClick={stopConsuming}
-          >
-            <FaStop className="text-sm flex-auto flex-shrink-0 flex-grow-0" />
-            <span className="ml-2 text-md">Stop consuming</span>
-          </button>
+          />
         ) : (
-          <button
-            className="btn btn-secondary flex items-center mr-2"
+          <EnvironmentAwareButton
+            text="Subscribe"
+            Icon={FaPlay}
             onClick={startConsuming}
-          >
-            <FaPlay className="text-sm flex-auto flex-shrink-0 flex-grow-0" />
-            <span className="ml-2 text-md">Start consuming</span>
-          </button>
+          />
         )}
-        <button className="btn btn-secondary flex items-center mr-2" disabled>
-          <FaShareSquare className="text-sm flex-auto flex-shrink-0 flex-grow-0" />
-          <span className="ml-2 text-md">Produce</span>
-        </button>
-        <button className="btn btn-secondary flex items-center mr-2" disabled>
-          <FaTachometerAlt className="text-sm flex-auto flex-shrink-0 flex-grow-0" />
-          <span className="ml-2 text-md">Monitor</span>
-        </button>
-        <button className="btn btn-secondary flex items-center mr-2" disabled>
-          <FaAngleDoubleRight className="text-sm flex-auto flex-shrink-0 flex-grow-0" />
-          <span className="ml-2 text-md">Seek</span>
-        </button>
+        <EnvironmentAwareButton text="Produce" Icon={FaShareSquare} disabled />
+        <EnvironmentAwareButton
+          text="Monitor"
+          Icon={FaTachometerAlt}
+          disabled
+        />
+        <EnvironmentAwareButton
+          text="Seek"
+          Icon={FaAngleDoubleRight}
+          disabled
+        />
       </div>
       <ul>
         {topic.records.map((record) => (

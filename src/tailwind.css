@@ -13,20 +13,20 @@
   @apply outline-none shadow-outline;
 }
 
+.btn:disabled {
+  @apply text-gray-500 border border-gray-500 bg-transparent;
+}
+
+.btn:disabled:hover {
+  @apply text-gray-500 border-gray-500 bg-transparent;
+}
+
 .btn-primary {
   @apply text-white bg-indigo-500 border border-indigo-700;
 }
 
 .btn-primary:hover {
   @apply bg-indigo-700;
-}
-
-.btn-primary:disabled {
-  @apply bg-gray-500 border-gray-700 border-none;
-}
-
-.btn-primary:disabled:hover {
-  @apply bg-gray-500 border-none;
 }
 
 .btn-secondary {
@@ -37,18 +37,10 @@
   @apply border-indigo-700 text-indigo-700;
 }
 
-.btn-secondary:disabled {
-  @apply text-gray-500;
-}
-
-.btn-secondary:disabled:hover {
-  @apply text-gray-500 border-gray-500;
-}
-
 .sidebar {
   animation: fade-in-from-left 0.35s;
-  flex: 225px 0 0;
-  max-width: 255px;
+  flex: 275px 0 0;
+  max-width: 275px;
 }
 
 .sidebar::-webkit-scrollbar {

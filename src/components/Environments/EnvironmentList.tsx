@@ -1,8 +1,9 @@
 import React, { FunctionComponent } from "react";
 import { useOvermindState } from "../../overmind";
 import { FaCircle, FaPlusCircle, FaExclamationTriangle } from "react-icons/fa";
-import { EnvironmentDraft, getTailwindColor } from "../../models/environments";
+import { EnvironmentDraft } from "../../models/environments";
 import classNames from "classnames";
+import { replaceEnvColor } from "../../util/tailwind-utils";
 
 export interface EnvironmentListProps {
   onEnvironmentClicked: (environment: EnvironmentDraft) => void;
@@ -35,9 +36,10 @@ export const EnvironmentList: FunctionComponent<EnvironmentListProps> = ({
               onClick={() => onEnvironmentClicked(environment)}
             >
               <FaCircle
-                className={`flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
-                  environment.color
-                )}-500`}
+                className={replaceEnvColor(
+                  `flex-auto flex-shrink-0 flex-grow-0 text-envcolor-500`,
+                  environment
+                )}
               />
               <span className="mx-3 text-md">{environment.name}</span>
               {draftEnvironmentIdsWithErrors.includes(environment.id) && (

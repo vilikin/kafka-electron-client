@@ -8,7 +8,7 @@ import React, {
 import { FaCaretDown, FaCircle, FaCog } from "react-icons/fa";
 import classNames from "classnames";
 import { useActions, useOvermindState } from "../../overmind";
-import { getTailwindColor } from "../../models/environments";
+import { replaceEnvColor } from "../../util/tailwind-utils";
 
 export const EnvironmentSelector: FunctionComponent = () => {
   const {
@@ -58,27 +58,17 @@ export const EnvironmentSelector: FunctionComponent = () => {
   return (
     <div className="flex-auto flex-grow-0 flex-shrink-0">
       <div
-        className={`w-full p-1 bg-${
+        className={replaceEnvColor(
+          `w-full p-1 bg-envcolor-600 shadow-md border-b-2 flex justify-center border-envcolor-400 transition-color duration-500`,
           selectedEnvironment
-            ? getTailwindColor(selectedEnvironment.color)
-            : "indigo"
-        }-600 shadow-md border-b-2 flex justify-center border-${
-          selectedEnvironment
-            ? getTailwindColor(selectedEnvironment.color)
-            : "indigo"
-        }-400 transition-color duration-500`}
+        )}
       >
         <div className="relative" ref={envSelectorAndDropdownRef}>
           <button
-            className={`inline-flex items-center cursor-pointer text-white rounded-md py-1 px-3 focus:outline-none focus:bg-${
+            className={replaceEnvColor(
+              `inline-flex items-center cursor-pointer text-white rounded-md py-1 px-3 focus:outline-none focus:bg-envcolor-500 hover:bg-envcolor-500`,
               selectedEnvironment
-                ? getTailwindColor(selectedEnvironment.color)
-                : "indigo"
-            }-500 hover:bg-${
-              selectedEnvironment
-                ? getTailwindColor(selectedEnvironment.color)
-                : "indigo"
-            }-500`}
+            )}
             onClick={handleEnvironmentSelectorClick}
           >
             <span className="mr-1">
@@ -104,9 +94,10 @@ export const EnvironmentSelector: FunctionComponent = () => {
                         className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-900"
                       >
                         <FaCircle
-                          className={`text-sm flex-auto flex-shrink-0 flex-grow-0 text-${getTailwindColor(
-                            environment.color
-                          )}-500`}
+                          className={replaceEnvColor(
+                            `text-sm flex-auto flex-shrink-0 flex-grow-0 text-envcolor-500`,
+                            environment
+                          )}
                         />
                         <span className="ml-3 text-md">{environment.name}</span>
                       </button>
