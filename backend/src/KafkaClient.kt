@@ -138,34 +138,7 @@ class KafkaClient {
                     }
                 }
 
-                val job = GlobalScope.launch {
-                    while (true) {
-                        (state as? KafkaClientStateConnected)?.let { connectedState ->
-                            synchronized(connectedState.consumer) {
-                                if (connectedState.consumer.subscription().isNotEmpty()) {
-                                    val records = connectedState.consumer.poll(Duration.ofMillis(500))
-                                        .map {
-                                            KafkaRecord(
-                                                it.topic(),
-                                                it.partition(),
-                                                it.offset(),
-                                                it.timestamp(),
-                                                it.key(),
-                                                it.value()
-                                            )
-                                        }
-
-                                    if (records.isNotEmpty()) {
-                                        connectedState.consumer.commitAsync()
-                                        broadcast(ReceiveRecords(records))
-                                    }
-                                }
-                            }
-                        }
-
-                        delay(500)
-                    }
-                }
+                val job = createRecordPollingJob()
 
                 state = KafkaClientStateConnected(
                     environmentId,
@@ -187,6 +160,37 @@ class KafkaClient {
             }
         } else {
             throw Exception("Already connected/connecting")
+        }
+    }
+
+    private fun createRecordPollingJob(): Job {
+        return GlobalScope.launch {
+            while (true) {
+                (state as? KafkaClientStateConnected)?.let { connectedState ->
+                    synchronized(connectedState.consumer) {
+                        if (connectedState.consumer.subscription().isNotEmpty()) {
+                            val records = connectedState.consumer.poll(Duration.ofMillis(500))
+                                .map {
+                                    KafkaRecord(
+                                        it.topic(),
+                                        it.partition(),
+                                        it.offset(),
+                                        it.timestamp(),
+                                        it.key(),
+                                        it.value()
+                                    )
+                                }
+
+                            if (records.isNotEmpty()) {
+                                connectedState.consumer.commitAsync()
+                                broadcast(ReceiveRecords(records))
+                            }
+                        }
+                    }
+                }
+
+                delay(500)
+            }
         }
     }
 
