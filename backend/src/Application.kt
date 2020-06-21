@@ -1,15 +1,21 @@
 package `in`.vilik
 
-import io.ktor.application.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.websocket.*
-import io.ktor.http.cio.websocket.*
-import java.time.*
-import io.ktor.features.*
+import io.ktor.application.Application
+import io.ktor.application.install
+import io.ktor.features.CORS
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.pingPeriod
+import io.ktor.http.cio.websocket.readText
+import io.ktor.http.cio.websocket.timeout
+import io.ktor.routing.routing
+import io.ktor.websocket.WebSockets
+import io.ktor.websocket.webSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.runBlocking
+import java.time.Duration
 
 val kafkaClient = KafkaClient()
 
