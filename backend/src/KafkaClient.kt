@@ -7,10 +7,12 @@ import kotlinx.coroutines.*
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.KafkaAdminClient
+import org.apache.kafka.clients.admin.TopicListing
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.Node
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import java.time.Duration
@@ -187,9 +189,27 @@ class KafkaClient {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
             try {
                 val topics = connectedState.adminClient.listTopics().listings().get()
-                    .map { KafkaTopic(it.name(), it.isInternal) }
+                val topicDescriptions = connectedState.adminClient.describeTopics(topics.map(TopicListing::name)).all().get()
 
-                broadcast(RefreshTopics(topics))
+                val results = topics.map {
+                    val description = topicDescriptions[it.name()]!!
+                    synchronized(connectedState.consumer) {
+                        KafkaTopic(
+                            description.name(),
+                            description.isInternal,
+                            description.partitions().map { partition ->
+                                KafkaTopicPartition(
+                                    partition.partition(),
+                                    partition.replicas().map(Node::id),
+                                    partition.isr().map(Node::id),
+                                    partition.leader().id()
+                                )
+                            }
+                        )
+                    }
+                }
+
+                broadcast(RefreshTopics(results))
             } catch (e: Exception) {
                 println("Failed to refresh topics")
                 e.printStackTrace()

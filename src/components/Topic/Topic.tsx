@@ -53,10 +53,13 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
 
   return (
     <div className="flex-1 flex h-full flex-col p-2 px-4 overflow-hidden">
-      <h1 className="text-lg text-gray-700 font-semibold">{topic.id}</h1>
+      <h1 className="text-lg text-gray-700 pb-1 font-semibold truncate break-all">
+        {topic.id}
+      </h1>
       <div className="text-gray-600 mb-3">
-        Partitions: 2 | Replicas: 3 | Total records: 10 035 | Available records:
-        456
+        Partitions: {topic.partitions.length} | Replicas:{" "}
+        {topic.partitions[0].replicas.length} | Total records: 10 035 |
+        Available records: 456
       </div>
       <div className="flex flex-row mb-3 ">
         {topic.consuming ? (

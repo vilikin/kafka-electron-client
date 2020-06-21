@@ -84,6 +84,7 @@ export const onRefreshTopics: Action<KafkaTopic[]> = (
       newTopicsObj[topic.id] = state.topics[topic.id] ?? {
         id: topic.id,
         isInternal: topic.isInternal,
+        partitions: topic.partitions,
         records: [],
         consuming: false,
       };

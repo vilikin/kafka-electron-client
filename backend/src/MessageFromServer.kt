@@ -1,8 +1,16 @@
 package `in`.vilik
 
+data class KafkaTopicPartition(
+    val id: Int,
+    val replicas: List<Int>,
+    val inSyncReplicas: List<Int>,
+    val leader: Int
+)
+
 data class KafkaTopic(
     val id: String,
-    val isInternal: Boolean
+    val isInternal: Boolean,
+    val partitions: List<KafkaTopicPartition>
 )
 
 data class KafkaConsumerGroup(

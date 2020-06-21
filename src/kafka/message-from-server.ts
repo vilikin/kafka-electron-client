@@ -9,9 +9,17 @@ export enum MessageFromServerType {
   UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC = "UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC",
 }
 
+export interface KafkaTopicPartition {
+  id: number;
+  replicas: number[];
+  inSyncReplicas: number[];
+  leader: number;
+}
+
 export interface KafkaTopic {
   id: string;
   isInternal: boolean;
+  partitions: KafkaTopicPartition[];
 }
 
 export interface KafkaConsumerGroup {
