@@ -10,8 +10,8 @@ export const EnvironmentsModal: FunctionComponent = () => {
   return (
     <div
       className={classNames(
-        "fixed w-full h-full top-0 left-0 flex items-center justify-center transition-opacity duration-200 ease-in-out",
-        { "pointer-events-none opacity-0": !environmentsModalOpen }
+        "fixed w-full h-full top-0 left-0 flex items-center justify-center",
+        { "pointer-events-none hidden": !environmentsModalOpen }
       )}
     >
       <div
