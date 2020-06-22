@@ -7,6 +7,8 @@ export enum MessageFromClientType {
   UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC = "UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC",
   SUBSCRIBE_TO_OFFSETS_OF_CONSUMER_GROUP = "SUBSCRIBE_TO_OFFSETS_OF_CONSUMER_GROUP",
   UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP = "UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP",
+  SUBSCRIBE_TO_OFFSETS_OF_TOPIC = "SUBSCRIBE_TO_OFFSETS_OF_TOPIC",
+  UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC = "UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC",
 }
 
 export interface RequestConnect {
@@ -42,10 +44,22 @@ export interface UnsubscribeFromOffsetsOfConsumerGroup {
   groupId: string;
 }
 
+export interface SubscribeToOffsetsOfTopic {
+  type: MessageFromClientType.SUBSCRIBE_TO_OFFSETS_OF_TOPIC;
+  topic: string;
+}
+
+export interface UnsubscribeFromOffsetsOfTopic {
+  type: MessageFromClientType.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC;
+  topic: string;
+}
+
 export type MessageFromClient =
   | RequestConnect
   | RequestDisconnect
   | SubscribeToRecordsOfTopic
   | UnsubscribeFromRecordsOfTopic
   | SubscribeToOffsetsOfConsumerGroup
-  | UnsubscribeFromOffsetsOfConsumerGroup;
+  | UnsubscribeFromOffsetsOfConsumerGroup
+  | SubscribeToOffsetsOfTopic
+  | UnsubscribeFromOffsetsOfTopic;

@@ -17,7 +17,9 @@ sealed class MessageFromClient(
         SUBSCRIBE_TO_RECORDS_OF_TOPIC,
         UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC,
         SUBSCRIBE_TO_OFFSETS_OF_CONSUMER_GROUP,
-        UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP
+        UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP,
+        SUBSCRIBE_TO_OFFSETS_OF_TOPIC,
+        UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC
     }
 
     companion object {
@@ -30,6 +32,9 @@ sealed class MessageFromClient(
                     .registerSubtype(UnsubscribeFromRecordsOfTopic::class.java, Type.UNSUBSCRIBE_FROM_RECORDS_OF_TOPIC.name)
                     .registerSubtype(SubscribeToOffsetsOfConsumerGroup::class.java, Type.SUBSCRIBE_TO_OFFSETS_OF_CONSUMER_GROUP.name)
                     .registerSubtype(UnsubscribeFromOffsetsOfConsumerGroup::class.java, Type.UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP.name)
+                .registerSubtype(SubscribeToOffsetsOfTopic::class.java, Type.SUBSCRIBE_TO_OFFSETS_OF_TOPIC.name)
+                .registerSubtype(UnsubscribeFromOffsetsOfTopic::class.java, Type.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC.name)
+
 
             return GsonBuilder()
                     .registerTypeAdapterFactory(runtimeTypeAdapterFactory)
@@ -64,3 +69,11 @@ class SubscribeToOffsetsOfConsumerGroup(
 class UnsubscribeFromOffsetsOfConsumerGroup(
     val groupId: String
 ): MessageFromClient(Type.UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP)
+
+class SubscribeToOffsetsOfTopic(
+    val topic: String
+): MessageFromClient(Type.SUBSCRIBE_TO_OFFSETS_OF_TOPIC)
+
+class UnsubscribeFromOffsetsOfTopic(
+    val topic: String
+): MessageFromClient(Type.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC)

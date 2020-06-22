@@ -15,7 +15,6 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
-import kotlin.system.measureTimeMillis
 
 sealed class KafkaClientState
 
@@ -27,7 +26,8 @@ data class KafkaClientStateConnected(
     val consumer: KafkaConsumer<String, String>,
     val producer: KafkaProducer<String, String>,
     val adminClient: AdminClient,
-    val subscribedToOffsetsOfConsumerGroups: MutableSet<String>
+    val subscribedToOffsetsOfConsumerGroups: MutableSet<String>,
+    val subscribedToOffsetsOfTopics: MutableSet<String>
 ) : KafkaClientState()
 
 data class KafkaClientStateConnecting(val environmentId: String) : KafkaClientState()
@@ -120,7 +120,8 @@ class KafkaClient {
                     adminClient,
                     mutableSetOf(
                         consumerProps[ConsumerConfig.GROUP_ID_CONFIG] ?: error("Group id should be defined as a prop")
-                    )
+                    ),
+                    mutableSetOf()
                 )
 
                 broadcast(StatusConnected(environmentId))
@@ -205,6 +206,20 @@ class KafkaClient {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
             connectedState.subscribedToOffsetsOfConsumerGroups.remove(groupId)
             broadcast(UnsubscribedFromOffsetsOfConsumerGroup(groupId))
+        }
+    }
+
+    fun subscribeToOffsetsOfTopic(topic: String) {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            connectedState.subscribedToOffsetsOfTopics.add(topic)
+            broadcast(SubscribedToOffsetsOfTopic(topic))
+        }
+    }
+
+    fun unsubscribeFromOffsetsOfTopic(topic: String) {
+        (state as? KafkaClientStateConnected)?.let { connectedState ->
+            connectedState.subscribedToOffsetsOfTopics.remove(topic)
+            broadcast(UnsubscribedFromOffsetsOfTopic(topic))
         }
     }
 

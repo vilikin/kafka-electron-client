@@ -46,7 +46,9 @@ sealed class MessageFromServer(
         SUBSCRIBED_TO_RECORDS_OF_TOPIC,
         UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC,
         SUBSCRIBED_TO_OFFSETS_OF_CONSUMER_GROUP,
-        UNSUBSCRIBED_FROM_OFFSETS_OF_CONSUMER_GROUP
+        UNSUBSCRIBED_FROM_OFFSETS_OF_CONSUMER_GROUP,
+        SUBSCRIBED_TO_OFFSETS_OF_TOPIC,
+        UNSUBSCRIBED_FROM_OFFSETS_OF_TOPIC
     }
 }
 
@@ -89,3 +91,11 @@ class SubscribedToOffsetsOfConsumerGroup(
 class UnsubscribedFromOffsetsOfConsumerGroup(
     val groupId: String
 ) : MessageFromServer(Type.UNSUBSCRIBED_FROM_OFFSETS_OF_CONSUMER_GROUP)
+
+class SubscribedToOffsetsOfTopic(
+    val topic: String
+) : MessageFromServer(Type.SUBSCRIBED_TO_OFFSETS_OF_TOPIC)
+
+class UnsubscribedFromOffsetsOfTopic(
+    val topic: String
+) : MessageFromServer(Type.UNSUBSCRIBED_FROM_OFFSETS_OF_TOPIC)
