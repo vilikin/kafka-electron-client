@@ -4,10 +4,7 @@ import com.google.gson.Gson
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.WebSocketSession
 import kotlinx.coroutines.*
-import org.apache.kafka.clients.admin.AdminClient
-import org.apache.kafka.clients.admin.AdminClientConfig
-import org.apache.kafka.clients.admin.KafkaAdminClient
-import org.apache.kafka.clients.admin.TopicListing
+import org.apache.kafka.clients.admin.*
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -18,17 +15,19 @@ import org.apache.kafka.common.serialization.StringSerializer
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
+import kotlin.system.measureTimeMillis
 
 sealed class KafkaClientState
 
 data class KafkaClientStateConnected(
     val environmentId: String,
     val recordPollingJob: Job,
-    val refreshTimer: Timer,
+    val refreshTopicsTimer: Timer,
+    val refreshConsumerGroupsTimer: Timer,
     val consumer: KafkaConsumer<String, String>,
     val producer: KafkaProducer<String, String>,
     val adminClient: AdminClient,
-    val subscribedToOffsetsOfTopics: MutableSet<String>
+    val subscribedToOffsetsOfConsumerGroups: MutableSet<String>
 ) : KafkaClientState()
 
 data class KafkaClientStateConnecting(val environmentId: String) : KafkaClientState()
@@ -97,9 +96,14 @@ class KafkaClient {
                 // Try an operation to see if connection works
                 adminClient.listTopics().names().get()
 
-                val refreshTimer = fixedRateTimer(initialDelay = 500, period = 60_000) {
+                val refreshTopicsTimer = fixedRateTimer(initialDelay = 500, period = 60_000) {
                     runBlocking {
                         refreshTopics()
+                    }
+                }
+
+                val refreshConsumerGroupsTimer = fixedRateTimer(initialDelay = 500, period = 5_000) {
+                    runBlocking {
                         refreshConsumerGroups()
                     }
                 }
@@ -109,11 +113,14 @@ class KafkaClient {
                 state = KafkaClientStateConnected(
                     environmentId,
                     job,
-                    refreshTimer,
+                    refreshTopicsTimer,
+                    refreshConsumerGroupsTimer,
                     consumer,
                     producer,
                     adminClient,
-                    mutableSetOf()
+                    mutableSetOf(
+                        consumerProps[ConsumerConfig.GROUP_ID_CONFIG] ?: error("Group id should be defined as a prop")
+                    )
                 )
 
                 broadcast(StatusConnected(environmentId))
@@ -187,17 +194,17 @@ class KafkaClient {
         }
     }
 
-    fun subscribeToOffsetsOfTopic(topic: String) {
+    fun subscribeToOffsetsOfConsumerGroup(groupId: String) {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
-            connectedState.subscribedToOffsetsOfTopics.add(topic)
-            broadcast(SubscribedToOffsetsOfTopic(topic))
+            connectedState.subscribedToOffsetsOfConsumerGroups.add(groupId)
+            broadcast(SubscribedToOffsetsOfConsumerGroup(groupId))
         }
     }
 
-    fun unsubscribeFromOffsetsOfTopic(topic: String) {
+    fun unsubscribeFromOffsetsOfConsumerGroup(groupId: String) {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
-            connectedState.subscribedToOffsetsOfTopics.remove(topic)
-            broadcast(UnsubscribedFromOffsetsOfTopic(topic))
+            connectedState.subscribedToOffsetsOfConsumerGroups.remove(groupId)
+            broadcast(UnsubscribedFromOffsetsOfConsumerGroup(groupId))
         }
     }
 
@@ -205,7 +212,8 @@ class KafkaClient {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
             try {
                 val topics = connectedState.adminClient.listTopics().listings().get()
-                val topicDescriptions = connectedState.adminClient.describeTopics(topics.map(TopicListing::name)).all().get()
+                val topicDescriptions =
+                    connectedState.adminClient.describeTopics(topics.map(TopicListing::name)).all().get()
 
                 val results = topics.map {
                     val description = topicDescriptions[it.name()]!!
@@ -237,11 +245,28 @@ class KafkaClient {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
             try {
                 val consumerGroups = connectedState.adminClient.listConsumerGroups().all().get()
-                    .map { KafkaConsumerGroup(it.groupId()) }
+                    .map {
+                        val groupId = it.groupId()
+                        if (connectedState.subscribedToOffsetsOfConsumerGroups.contains(groupId)) {
+                            val offsets = connectedState.adminClient.listConsumerGroupOffsets(groupId)
+                                .partitionsToOffsetAndMetadata().get()
+                                .map { (key, value) ->
+                                    TopicPartitionOffsets(
+                                        key.topic(),
+                                        key.partition(),
+                                        value.offset()
+                                    )
+                                }
+
+                            KafkaConsumerGroup(groupId, offsets)
+                        } else {
+                            KafkaConsumerGroup(groupId, emptyList())
+                        }
+                    }
 
                 broadcast(RefreshConsumerGroups(consumerGroups))
             } catch (e: Exception) {
-                println("Failed to refresh topics")
+                println("Failed to refresh consumer groups")
                 e.printStackTrace()
             }
         }
@@ -249,7 +274,8 @@ class KafkaClient {
 
     fun disconnect() {
         (state as? KafkaClientStateConnected)?.let { connectedState ->
-            connectedState.refreshTimer.cancel()
+            connectedState.refreshTopicsTimer.cancel()
+            connectedState.refreshConsumerGroupsTimer.cancel()
             connectedState.recordPollingJob.cancel()
 
             synchronized(connectedState.consumer) {

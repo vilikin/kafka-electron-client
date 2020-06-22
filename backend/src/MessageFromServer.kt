@@ -13,8 +13,15 @@ data class KafkaTopic(
     val partitions: List<KafkaTopicPartition>
 )
 
+data class TopicPartitionOffsets(
+    val topic: String,
+    val partition: Int,
+    val offset: Long
+)
+
 data class KafkaConsumerGroup(
-    val id: String
+    val id: String,
+    val offsets: List<TopicPartitionOffsets>
 )
 
 data class KafkaRecord(
@@ -38,8 +45,8 @@ sealed class MessageFromServer(
         RECEIVE_RECORDS,
         SUBSCRIBED_TO_RECORDS_OF_TOPIC,
         UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC,
-        SUBSCRIBED_TO_OFFSETS_OF_TOPIC,
-        UNSUBSCRIBED_FROM_OFFSETS_OF_TOPIC
+        SUBSCRIBED_TO_OFFSETS_OF_CONSUMER_GROUP,
+        UNSUBSCRIBED_FROM_OFFSETS_OF_CONSUMER_GROUP
     }
 }
 
@@ -75,10 +82,10 @@ class ReceiveRecords(
     val records: List<KafkaRecord>
 ) : MessageFromServer(Type.RECEIVE_RECORDS)
 
-class SubscribedToOffsetsOfTopic(
-    val topic: String
-) : MessageFromServer(Type.SUBSCRIBED_TO_OFFSETS_OF_TOPIC)
+class SubscribedToOffsetsOfConsumerGroup(
+    val groupId: String
+) : MessageFromServer(Type.SUBSCRIBED_TO_OFFSETS_OF_CONSUMER_GROUP)
 
-class UnsubscribedFromOffsetsOfTopic(
-    val topic: String
-) : MessageFromServer(Type.UNSUBSCRIBED_FROM_OFFSETS_OF_TOPIC)
+class UnsubscribedFromOffsetsOfConsumerGroup(
+    val groupId: String
+) : MessageFromServer(Type.UNSUBSCRIBED_FROM_OFFSETS_OF_CONSUMER_GROUP)

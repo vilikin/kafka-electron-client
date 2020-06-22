@@ -68,8 +68,8 @@ fun Application.module() {
                                 is RequestDisconnect -> kafkaClient.disconnect()
                                 is SubscribeToRecordsOfTopic -> kafkaClient.subscribeToRecordsOfTopic(messageFromClient.topic)
                                 is UnsubscribeFromRecordsOfTopic -> kafkaClient.unsubscribeFromRecordsOfTopic(messageFromClient.topic)
-                                is SubscribeToOffsetsOfTopic -> kafkaClient.subscribeToOffsetsOfTopic(messageFromClient.topic)
-                                is UnsubscribeFromOffsetsOfTopic -> kafkaClient.unsubscribeFromOffsetsOfTopic(messageFromClient.topic)
+                                is SubscribeToOffsetsOfConsumerGroup -> kafkaClient.subscribeToOffsetsOfConsumerGroup(messageFromClient.groupId)
+                                is UnsubscribeFromOffsetsOfConsumerGroup -> kafkaClient.unsubscribeFromOffsetsOfConsumerGroup(messageFromClient.groupId)
                             }
                         }
 

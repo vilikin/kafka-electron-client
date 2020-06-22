@@ -11,9 +11,9 @@ import {
   MessageFromClientType,
   RequestConnect,
   RequestDisconnect,
-  SubscribeToOffsetsOfTopic,
+  SubscribeToOffsetsOfConsumerGroup,
   SubscribeToRecordsOfTopic,
-  UnsubscribeFromOffsetsOfTopic,
+  UnsubscribeFromOffsetsOfConsumerGroup,
   UnsubscribeFromRecordsOfTopic,
 } from "./message-from-client";
 
@@ -156,19 +156,19 @@ export class KafkaBackendClient {
     this.send(message);
   }
 
-  public subscribeToOffsetsOfTopic(topic: string) {
-    const message: SubscribeToOffsetsOfTopic = {
-      type: MessageFromClientType.SUBSCRIBE_TO_OFFSETS_OF_TOPIC,
-      topic,
+  public subscribeToOffsetsOfConsumerGroup(groupId: string) {
+    const message: SubscribeToOffsetsOfConsumerGroup = {
+      type: MessageFromClientType.SUBSCRIBE_TO_OFFSETS_OF_CONSUMER_GROUP,
+      groupId,
     };
 
     this.send(message);
   }
 
   public unsubscribeFromOffsetsOfTopic(topic: string) {
-    const message: UnsubscribeFromOffsetsOfTopic = {
-      type: MessageFromClientType.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC,
-      topic,
+    const message: UnsubscribeFromOffsetsOfConsumerGroup = {
+      type: MessageFromClientType.UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP,
+      groupId: topic,
     };
 
     this.send(message);
