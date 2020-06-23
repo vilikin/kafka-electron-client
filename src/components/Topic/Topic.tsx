@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import { EnvironmentAwareButton } from "../Common/EnvironmentAwareButton";
 import { Record } from "./Record";
+import * as _ from "lodash";
 
 export interface TopicProps {
   topicName: string;
@@ -51,6 +52,17 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
     await kafka.unsubscribeFromRecordsOfTopic(topicName);
   }, [kafka, topicName]);
 
+  const totalRecords = _.sumBy(
+    topic.partitions,
+    (partition) => partition.latestOffset ?? 0
+  );
+
+  const availableRecords = _.sumBy(
+    topic.partitions,
+    (partition) =>
+      (partition.latestOffset ?? 0) - (partition.earliestOffset ?? 0)
+  );
+
   return (
     <div className="flex-1 flex h-full flex-col p-2 px-4 overflow-hidden">
       <h1 className="text-lg text-gray-700 pb-1 font-semibold truncate break-all">
@@ -58,8 +70,8 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
       </h1>
       <div className="text-gray-600 mb-3">
         Partitions: {topic.partitions.length} | Replicas:{" "}
-        {topic.partitions[0].replicas.length} | Total records: 10 035 |
-        Available records: 456
+        {topic.partitions[0].replicas.length} | Total records: {totalRecords} |
+        Available records: {availableRecords}
       </div>
       <div className="flex flex-row mb-3 ">
         {topic.consuming ? (

@@ -2,7 +2,7 @@ import { derived } from "overmind";
 import {
   KafkaConsumerGroup,
   KafkaRecord,
-  KafkaTopic,
+  KafkaTopicPartition,
 } from "../../kafka/message-from-server";
 
 export enum ConnectionStatus {
@@ -11,7 +11,15 @@ export enum ConnectionStatus {
   DISCONNECTED = "DISCONNECTED",
 }
 
-export interface KafkaTopicState extends KafkaTopic {
+export interface KafkaTopicPartitionState extends KafkaTopicPartition {
+  earliestOffset?: number;
+  latestOffset?: number;
+}
+
+export interface KafkaTopicState {
+  id: string;
+  isInternal: boolean;
+  partitions: KafkaTopicPartitionState[];
   records: KafkaRecord[];
   consuming: boolean;
 }

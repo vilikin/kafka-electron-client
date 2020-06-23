@@ -17,8 +17,9 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
     onConnected: actions.connection.onConnected,
     onConnecting: actions.connection.onConnecting,
     onDisconnected: actions.connection.onDisconnected,
-    onRefreshConsumerGroups: actions.connection.onRefreshConsumerGroups,
     onRefreshTopics: actions.connection.onRefreshTopics,
+    onRefreshConsumerGroups: actions.connection.onRefreshConsumerGroups,
+    onRefreshTopicOffsets: actions.connection.onRefreshTopicOffsets,
     onSubscribedToRecordsOfTopic:
       actions.connection.onSubscribedToRecordsOfTopic,
     onUnsubscribedFromRecordsOfTopic:

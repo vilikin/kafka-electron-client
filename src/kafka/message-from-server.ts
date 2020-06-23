@@ -4,6 +4,7 @@ export enum MessageFromServerType {
   STATUS_DISCONNECTED = "STATUS_DISCONNECTED",
   REFRESH_TOPICS = "REFRESH_TOPICS",
   REFRESH_CONSUMER_GROUPS = "REFRESH_CONSUMER_GROUPS",
+  REFRESH_TOPIC_OFFSETS = "REFRESH_TOPIC_OFFSETS",
   RECEIVE_RECORDS = "RECEIVE_RECORDS",
   SUBSCRIBED_TO_RECORDS_OF_TOPIC = "SUBSCRIBED_TO_RECORDS_OF_TOPIC",
   UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC = "UNSUBSCRIBED_FROM_RECORDS_OF_TOPIC",
@@ -20,6 +21,13 @@ export interface KafkaTopic {
   id: string;
   isInternal: boolean;
   partitions: KafkaTopicPartition[];
+}
+
+export interface PartitionOffsets {
+  topic: string;
+  partition: number;
+  earliest: number;
+  latest: number;
 }
 
 export interface KafkaConsumerGroup {
@@ -60,6 +68,11 @@ export interface RefreshConsumerGroups {
   consumerGroups: KafkaConsumerGroup[];
 }
 
+export interface RefreshTopicOffsets {
+  type: MessageFromServerType.REFRESH_TOPIC_OFFSETS;
+  offsets: PartitionOffsets[];
+}
+
 export interface SubscribedToRecordsOfTopic {
   type: MessageFromServerType.SUBSCRIBED_TO_RECORDS_OF_TOPIC;
   topic: string;
@@ -81,6 +94,7 @@ export type MessageFromServer =
   | StatusDisconnected
   | RefreshTopics
   | RefreshConsumerGroups
+  | RefreshTopicOffsets
   | SubscribedToRecordsOfTopic
   | UnsubscribedFromRecordsOfTopic
   | ReceiveRecords;

@@ -5,6 +5,7 @@ import {
   KafkaConsumerGroup,
   KafkaRecord,
   KafkaTopic,
+  PartitionOffsets,
 } from "../../kafka/message-from-server";
 
 export const connectToSelectedEnvironment: AsyncAction = async ({
@@ -112,6 +113,32 @@ export const onRefreshConsumerGroups: Action<KafkaConsumerGroup[]> = (
       ...state,
       consumerGroups: _.keyBy(consumerGroups, "id"),
     };
+  }
+};
+
+export const onRefreshTopicOffsets: Action<PartitionOffsets[]> = (
+  { state: rootState },
+  offsets
+) => {
+  const {
+    connection: { state },
+  } = rootState;
+
+  if (state.status === ConnectionStatus.CONNECTED) {
+    const topics = _.cloneDeep(state.topics);
+    offsets.forEach((partitionOffsets) => {
+      topics[partitionOffsets.topic].partitions = topics[
+        partitionOffsets.topic
+      ].partitions.map((partition) => {
+        return {
+          ...partition,
+          earliestOffset: partitionOffsets.earliest,
+          latestOffset: partitionOffsets.latest,
+        };
+      });
+    });
+
+    state.topics = topics;
   }
 };
 

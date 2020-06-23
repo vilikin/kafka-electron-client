@@ -5,6 +5,7 @@ import {
   KafkaTopic,
   MessageFromServer,
   MessageFromServerType,
+  PartitionOffsets,
 } from "./message-from-server";
 import {
   MessageFromClient,
@@ -25,6 +26,7 @@ export interface KafkaClientCallbacks {
   onConnecting: (environmentId: string) => void;
   onRefreshTopics: (topics: KafkaTopic[]) => void;
   onRefreshConsumerGroups: (consumerGroups: KafkaConsumerGroup[]) => void;
+  onRefreshTopicOffsets: (topicOffsets: PartitionOffsets[]) => void;
   onRecordsReceived: (records: KafkaRecord[]) => void;
   onSubscribedToRecordsOfTopic: (topic: string) => void;
   onUnsubscribedFromRecordsOfTopic: (topic: string) => void;
@@ -85,6 +87,9 @@ export class KafkaBackendClient {
         this.callbacks.onRefreshConsumerGroups(
           messageFromServer.consumerGroups
         );
+        return;
+      case MessageFromServerType.REFRESH_TOPIC_OFFSETS:
+        this.callbacks.onRefreshTopicOffsets(messageFromServer.offsets);
         return;
       case MessageFromServerType.SUBSCRIBED_TO_RECORDS_OF_TOPIC:
         this.callbacks.onSubscribedToRecordsOfTopic(messageFromServer.topic);
