@@ -3,6 +3,7 @@ import { useOvermindState } from "../overmind";
 import { PageId } from "../overmind/routing/state";
 import { ConnectionStatus } from "../overmind/connection/state";
 import { Topic } from "./Topic/Topic";
+import { ConsumerGroup } from "./ConsumerGroup/ConsumerGroup";
 
 export const ConnectedView: FunctionComponent = () => {
   const { environments, routing, connection } = useOvermindState();
@@ -24,5 +25,9 @@ export const ConnectedView: FunctionComponent = () => {
     return <Topic topicName={routing.topicId} />;
   }
 
-  return <>Not at home or at topic</>;
+  if (routing.currentPageId === PageId.CONSUMER_GROUP) {
+    return <ConsumerGroup groupId={routing.groupId} />;
+  }
+
+  return <>No route matched</>;
 };

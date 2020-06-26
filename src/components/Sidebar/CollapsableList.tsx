@@ -30,7 +30,7 @@ export const CollapsableList: FunctionComponent<CollapsableListProps> = ({
   return (
     <div>
       <div
-        className="flex flex-row items-center px-2 mb-1 cursor-pointer text-white"
+        className="flex flex-row items-center px-2 py-2 cursor-pointer text-gray-300"
         onClick={toggle}
       >
         {collapsed ? (
@@ -41,7 +41,7 @@ export const CollapsableList: FunctionComponent<CollapsableListProps> = ({
         <h3 className="tracking-wider text-sm ml-2">{header}</h3>
       </div>
       <ul
-        className={classNames("overflow-hidden mb-3 pt-1", {
+        className={classNames("overflow-hidden pt-1", {
           hidden: collapsed,
         })}
       >

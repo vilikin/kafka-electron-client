@@ -12,7 +12,7 @@ import { CollapsableList } from "./CollapsableList";
 export const Sidebar: FunctionComponent = () => {
   const { state, topicList, consumerGroupList } = useOvermindState().connection;
   const { routing } = useOvermindState();
-  const { showTopicPage } = useActions().routing;
+  const { showTopicPage, showConsumerGroupPage } = useActions().routing;
 
   if (state.status !== ConnectionStatus.CONNECTED) {
     throw new Error("Can't render Sidebar while not being connected");
@@ -28,9 +28,11 @@ export const Sidebar: FunctionComponent = () => {
         items={consumerGroupList.map((consumerGroup) => ({
           id: consumerGroup.id,
           label: consumerGroup.id,
-          selected: false,
+          selected:
+            routing.currentPageId === PageId.CONSUMER_GROUP &&
+            routing.groupId === consumerGroup.id,
         }))}
-        onItemClicked={(id) => console.log(id)}
+        onItemClicked={(id) => showConsumerGroupPage(id)}
       />
       {topicsBeingConsumed.length > 0 && (
         <CollapsableList
