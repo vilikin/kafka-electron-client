@@ -347,6 +347,7 @@ class KafkaClient {
     (state as? KafkaClientStateConnected)?.let { connectedState ->
       connectedState.refreshTopicsTimer.cancel()
       connectedState.refreshConsumerGroupsTimer.cancel()
+      connectedState.refreshTopicOffsetsTimer.cancel()
       connectedState.recordPollingJob.cancel()
 
       synchronized(connectedState.consumer) {
