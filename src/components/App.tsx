@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 import { useOvermindState } from "../overmind";
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "./Sidebar/Sidebar";
 import { EnvironmentsModal } from "./Environments/EnvironmentsModal";
 import { EnvironmentSelector } from "./Environments/EnvironmentSelector";
 import { ConnectionStatus } from "../overmind/connection/state";

@@ -1,15 +1,18 @@
 import React, { FunctionComponent } from "react";
-import { useActions, useOvermindState } from "../overmind";
+import { useActions, useOvermindState } from "../../overmind";
 import {
   ConnectionStatus,
   KafkaTopicState,
-} from "../overmind/connection/state";
+} from "../../overmind/connection/state";
 import classNames from "classnames";
-import { PageId } from "../overmind/routing/state";
-import { replaceEnvColor } from "../util/tailwind-utils";
+import { PageId } from "../../overmind/routing/state";
+import { replaceEnvColor } from "../../util/tailwind-utils";
+import { CollapsableList } from "./CollapsableList";
 
 export const Sidebar: FunctionComponent = () => {
-  const { state, topicList } = useOvermindState().connection;
+  const { state, topicList, consumerGroupList } = useOvermindState().connection;
+  const { routing } = useOvermindState();
+  const { showTopicPage } = useActions().routing;
 
   if (state.status !== ConnectionStatus.CONNECTED) {
     throw new Error("Can't render Sidebar while not being connected");
@@ -20,14 +23,39 @@ export const Sidebar: FunctionComponent = () => {
 
   return (
     <div className="sidebar bg-gray-900 py-3 overflow-y-scroll">
+      <CollapsableList
+        header="Consumer groups"
+        items={consumerGroupList.map((consumerGroup) => ({
+          id: consumerGroup.id,
+          label: consumerGroup.id,
+          selected: false,
+        }))}
+        onItemClicked={(id) => console.log(id)}
+      />
       {topicsBeingConsumed.length > 0 && (
-        <>
-          <h3 className="text-md text-white px-6 mb-1">Subscribing</h3>
-          <TopicList topics={topicsBeingConsumed} />
-        </>
+        <CollapsableList
+          header="Subscribing"
+          items={topicsBeingConsumed.map((topic) => ({
+            id: topic.id,
+            label: topic.id,
+            selected:
+              routing.currentPageId === PageId.TOPIC &&
+              routing.topicId === topic.id,
+          }))}
+          onItemClicked={(id) => showTopicPage(id)}
+        />
       )}
-      <h3 className="text-md text-white px-6 mb-1">Topics</h3>
-      <TopicList topics={topicsNotBeingConsumed} />
+      <CollapsableList
+        header="Topics"
+        items={topicsNotBeingConsumed.map((topic) => ({
+          id: topic.id,
+          label: topic.id,
+          selected:
+            routing.currentPageId === PageId.TOPIC &&
+            routing.topicId === topic.id,
+        }))}
+        onItemClicked={(id) => showTopicPage(id)}
+      />
     </div>
   );
 };
