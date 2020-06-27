@@ -84,7 +84,14 @@
     "productName": "Kafka UI",
     "copyright": "Copyright © 2020 ${author}",
     "mac": {
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "publish": ["github"]
+    },
+    "win": {
+      "publish": ["github"]
+    },
+    "linux": {
+      "publish": ["github"]
     },
     "files": [
       "build/**/*",
