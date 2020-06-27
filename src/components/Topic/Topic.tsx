@@ -36,7 +36,7 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
     if (recordsDiv && recordsDiv.current) {
       recordsDiv.current.scrollTop = recordsDiv.current.scrollHeight;
     }
-  }, scrollEffectDeps);
+  }, scrollEffectDeps); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (connection.state.status !== ConnectionStatus.CONNECTED) {
     throw new Error("Not connected");

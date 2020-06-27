@@ -62,7 +62,6 @@
     "@fullhuman/postcss-purgecss": "^2.2.0",
     "@types/classnames": "^2.2.10",
     "@types/lodash": "^4.14.152",
-    "@types/page": "^1.8.0",
     "@types/uuid": "^8.0.0",
     "autoprefixer": "^9.8.0",
     "concurrently": "^5.2.0",

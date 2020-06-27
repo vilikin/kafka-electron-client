@@ -7,8 +7,6 @@ import { EnvironmentDraft } from "../../models/environments";
 
 export const EnvironmentConfigurationView: FunctionComponent = () => {
   const {
-    draftEnvironmentList,
-    environmentList,
     draftEnvironmentBeingEdited,
     draftEnvironmentIdsWithErrors,
   } = useOvermindState().environments;
@@ -17,7 +15,6 @@ export const EnvironmentConfigurationView: FunctionComponent = () => {
     createNewDraftEnvironment,
     discardChangesAndCloseEnvironmentsModal,
     saveChangesAndCloseEnvironmentsModal,
-    removeDraftEnvironment,
   } = useActions().environments;
 
   const createEnvironment = useCallback(() => {
@@ -38,10 +35,6 @@ export const EnvironmentConfigurationView: FunctionComponent = () => {
   const done = useCallback(() => {
     saveChangesAndCloseEnvironmentsModal();
   }, [saveChangesAndCloseEnvironmentsModal]);
-
-  const remove = useCallback(() => {
-    removeDraftEnvironment(draftEnvironmentBeingEdited!.id);
-  }, [removeDraftEnvironment, draftEnvironmentBeingEdited]);
 
   return (
     <div className="flex items-stretch" style={{ minWidth: "800px" }}>

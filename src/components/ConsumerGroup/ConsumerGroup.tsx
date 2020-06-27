@@ -63,6 +63,8 @@ export const ConsumerGroup: FunctionComponent<ConsumerGroupProps> = ({
               );
             });
           }
+
+          return null;
         })}
       </table>
     </div>
