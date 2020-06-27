@@ -59,7 +59,7 @@ export const EnvironmentSelector: FunctionComponent = () => {
     <div className="flex-auto flex-grow-0 flex-shrink-0">
       <div
         className={replaceEnvColor(
-          `w-full p-1 bg-envcolor-600 shadow-md border-b-2 flex justify-center border-envcolor-400 transition-color duration-500`,
+          `w-full p-1 bg-envcolor-600 shadow-md flex justify-center border-b border-t border-envcolor-500 transition-color duration-500`,
           selectedEnvironment
         )}
       >

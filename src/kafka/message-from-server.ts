@@ -30,8 +30,15 @@ export interface PartitionOffsets {
   latest: number;
 }
 
+export interface ConsumerGroupOffsetForPartition {
+  topic: string;
+  partition: number;
+  offset: number;
+}
+
 export interface KafkaConsumerGroup {
   id: string;
+  offsets: ConsumerGroupOffsetForPartition[];
 }
 
 export interface KafkaRecord {
