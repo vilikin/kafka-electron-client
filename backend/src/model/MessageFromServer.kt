@@ -1,35 +1,9 @@
-package `in`.vilik
+package `in`.vilik.model
 
-data class KafkaTopicPartition(
-  val id: Int,
-  val replicas: List<Int>,
-  val inSyncReplicas: List<Int>,
-  val leader: Int
-)
+import `in`.vilik.kafka.ConsumerGroup
+import `in`.vilik.kafka.Topic
+import `in`.vilik.kafka.PartitionOffsets
 
-data class KafkaTopic(
-  val id: String,
-  val isInternal: Boolean,
-  val partitions: List<KafkaTopicPartition>
-)
-
-data class PartitionOffsets(
-  val topic: String,
-  val partition: Int,
-  val earliest: Long,
-  val latest: Long
-)
-
-data class ConsumerGroupOffsetForPartition(
-  val topic: String,
-  val partition: Int,
-  val offset: Long
-)
-
-data class KafkaConsumerGroup(
-  val id: String,
-  val offsets: List<ConsumerGroupOffsetForPartition>
-)
 
 data class KafkaRecord(
   val topic: String,
@@ -73,11 +47,11 @@ class StatusDisconnected(
 ) : MessageFromServer(Type.STATUS_DISCONNECTED)
 
 class RefreshTopics(
-  val topics: List<KafkaTopic>
+  val topics: List<Topic>
 ) : MessageFromServer(Type.REFRESH_TOPICS)
 
 class RefreshConsumerGroups(
-  val consumerGroups: List<KafkaConsumerGroup>
+  val consumerGroups: List<ConsumerGroup>
 ) : MessageFromServer(Type.REFRESH_CONSUMER_GROUPS)
 
 class RefreshTopicOffsets(

@@ -1,5 +1,7 @@
 package `in`.vilik
 
+import `in`.vilik.kafka.KafkaClient
+import `in`.vilik.model.*
 import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.features.CORS

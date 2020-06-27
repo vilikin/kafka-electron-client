@@ -1,4 +1,4 @@
-package `in`.vilik
+package `in`.vilik.model
 
 import com.google.gson.GsonBuilder
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory
@@ -62,11 +62,11 @@ sealed class MessageFromClient(
 }
 
 class RequestConnect(
-  val environmentId: String,
-  val brokers: List<String>,
-  val authenticationStrategy: AuthenticationStrategy,
-  val username: String?,
-  val password: String?
+        val environmentId: String,
+        val brokers: List<String>,
+        val authenticationStrategy: AuthenticationStrategy,
+        val username: String?,
+        val password: String?
 ) : MessageFromClient(Type.REQUEST_CONNECT)
 
 class RequestDisconnect : MessageFromClient(Type.REQUEST_DISCONNECT)
