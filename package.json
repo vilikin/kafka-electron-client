@@ -25,7 +25,7 @@
     "typescript": "~3.7.2",
     "uuid": "^8.0.0"
   },
-  "main": "public/electron.js",
+  "main": "./public/electron.js",
   "homepage": "./",
   "scripts": {
     "build:tailwind": "postcss src/tailwind.css -o src/tailwind.generated.css",
