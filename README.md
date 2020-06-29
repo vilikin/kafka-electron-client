@@ -22,13 +22,10 @@ This will start Overmind developer tools, spawn the backend process and open the
 
 This project uses GitHub actions to build and release the app.
 
-Electron Builder publishes binaries to GitHub whenever a tag corresponding to the version in package.json is pushed, or a draft release already exists for the version in package.json.
-
 Following flow should be used with releases:
 
-1. After a release, immediately bump version in package.json and create a new draft release.
-1. On each change, Electron Builder will automatically publish binaries as draft release exists.
-1. When ready to actually release, just publish the release, and see first point to prepare next one.
+1. On each change, Electron Builder will automatically publish binaries to a draft release with version tag corresponding to the package.json version.
+1. When ready to actually release, just publish the draft and bump package.json version again to start working on next release.
 
 ## Features
 
