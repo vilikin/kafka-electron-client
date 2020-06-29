@@ -1,6 +1,6 @@
 # Kafka Electron Client
 
-Very much a work in progress still. :)
+A simple Kafka client for consuming / producing Kafka records, checking offsets etc. Not by any means full featured, and still very much work in progress. Use at your own risk :)
 
 ## Development
 
@@ -13,10 +13,22 @@ Very much a work in progress still. :)
 
 ### Running development environment
 
-1. Build backend JAR by running `./gradlew shadowJar` in the `backend` directory
+1. Build backend JAR by running `./backend/gradlew --project-dir backend shadowJar`
 1. Run the development environment for Electron app with `yarn electron-dev`
 
 This will start Overmind developer tools, spawn the backend process and open the Electron app.
+
+## Releasing
+
+This project uses GitHub actions to build and release the app.
+
+Electron Builder publishes binaries to GitHub whenever a tag corresponding to the version in package.json is pushed, or a draft release already exists for the version in package.json.
+
+Following flow should be used with releases:
+
+1. After a release, immediately bump version in package.json and create a new draft release.
+1. On each change, Electron Builder will automatically publish binaries as draft release exists.
+1. When ready to actually release, just publish the release, and see first point to prepare next one.
 
 ## Features
 
@@ -32,4 +44,4 @@ This will start Overmind developer tools, spawn the backend process and open the
 - [ ] Consumer group view: Build lag graph
 - [X] Environment config: SASL PLAIN Kafka auth
 - [ ] Environment config: Custom Kafka auth
-- [ ] GitHub actions for automated release
+- [X] GitHub actions for automated releases
