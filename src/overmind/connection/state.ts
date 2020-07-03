@@ -4,6 +4,13 @@ import {
   KafkaRecord,
   KafkaTopicPartition,
 } from "../../kafka/message-from-server";
+import { BackendProcessLogEntry } from "../../kafka/kafka-backend-client";
+
+export enum BackendStatus {
+  STARTING = "STARTING",
+  READY = "READY",
+  EXITED = "EXITED",
+}
 
 export enum ConnectionStatus {
   CONNECTING = "CONNECTING",
@@ -46,8 +53,30 @@ export type ConnectionState =
   | ConnectionStateConnected
   | ConnectionStateDisconnected;
 
+export type BackendStateStarting = {
+  status: BackendStatus.STARTING;
+  log: BackendProcessLogEntry[];
+};
+
+export type BackendStateReady = {
+  status: BackendStatus.READY;
+  log: BackendProcessLogEntry[];
+};
+
+export type BackendStateExited = {
+  status: BackendStatus.EXITED;
+  log: BackendProcessLogEntry[];
+  reason: string;
+};
+
+export type BackendState =
+  | BackendStateStarting
+  | BackendStateReady
+  | BackendStateExited;
+
 export type ConnectionRootState = {
   state: ConnectionState;
+  backendState: BackendState;
   topicList: KafkaTopicState[];
   consumerGroupList: KafkaConsumerGroup[];
 };
@@ -56,6 +85,11 @@ export const state: ConnectionRootState = {
   state: {
     status: ConnectionStatus.DISCONNECTED,
     error: null,
+  },
+  backendState: {
+    status: BackendStatus.EXITED,
+    log: [],
+    reason: "Initial state",
   },
   topicList: derived<ConnectionRootState, KafkaTopicState[]>((state) => {
     return state.state.status === ConnectionStatus.CONNECTED

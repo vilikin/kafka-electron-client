@@ -19,6 +19,12 @@ import {
   UnsubscribeFromOffsetsOfTopic,
   UnsubscribeFromRecordsOfTopic,
 } from "./message-from-client";
+import { spawnBackendProcess } from "./backend-process";
+
+export interface BackendProcessLogEntry {
+  type: "log" | "error";
+  message: string;
+}
 
 export interface KafkaClientCallbacks {
   onConnected: (environmentId: string) => void;
@@ -31,14 +37,44 @@ export interface KafkaClientCallbacks {
   onSubscribedToRecordsOfTopic: (topic: string) => void;
   onUnsubscribedFromRecordsOfTopic: (topic: string) => void;
   onError: (error: Error) => void;
+  onBackendProcessStarting: () => void;
+  onBackendProcessReady: () => void;
+  onBackendProcessExit: (reason: string) => void;
+  onBackendProcessLog: (entry: BackendProcessLogEntry) => void;
 }
 
 export class KafkaBackendClient {
   private ws: WebSocket | null = null;
   private callbacks: KafkaClientCallbacks | null = null;
 
-  public init(callbacks: KafkaClientCallbacks) {
+  public async init(callbacks: KafkaClientCallbacks) {
     this.callbacks = callbacks;
+    this.callbacks.onBackendProcessStarting();
+
+    try {
+      const backend = await spawnBackendProcess();
+
+      backend.stdout.on("data", (message) => {
+        console.log(`backend stdout: ${message}`);
+        this.callbacks?.onBackendProcessLog({ type: "log", message });
+      });
+
+      backend.stderr.on("data", (message) => {
+        console.log(`backend stderr: ${message}`);
+        this.callbacks?.onBackendProcessLog({ type: "error", message });
+      });
+
+      backend.on("close", (exitCode) => {
+        this.callbacks?.onBackendProcessExit(
+          "Backend exited with code " + exitCode
+        );
+      });
+    } catch (e) {
+      this.callbacks.onBackendProcessExit(e.toString());
+      return;
+    }
+
+    this.callbacks.onBackendProcessReady();
 
     const ws = new WebSocket("ws://localhost:37452");
 

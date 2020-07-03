@@ -26,6 +26,10 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
       actions.connection.onUnsubscribedFromRecordsOfTopic,
     onRecordsReceived: actions.connection.onRecordsReceived,
     onError: actions.connection.onError,
+    onBackendProcessStarting: actions.connection.onBackendProcessStarting,
+    onBackendProcessExit: actions.connection.onBackendProcessExit,
+    onBackendProcessReady: actions.connection.onBackendProcessReady,
+    onBackendProcessLog: actions.connection.onBackendProcessLog,
   });
 
   effects.store.loadConfig().then((config) => {
@@ -36,7 +40,10 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
     (state) => state.environments.environmentList,
     (environments) =>
       effects.store.saveConfig({
-        environments,
+        environments: environments.map((environment) => ({
+          ...environment,
+          selected: false, // we should not select any environment automatically on startup
+        })),
       })
   );
 
