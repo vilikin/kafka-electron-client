@@ -1,5 +1,5 @@
 import { Action, AsyncAction } from "overmind";
-import { ConnectionStatus, KafkaTopicState } from "./state";
+import { BackendStatus, ConnectionStatus, KafkaTopicState } from "./state";
 import * as _ from "lodash";
 import {
   KafkaConsumerGroup,
@@ -7,6 +7,7 @@ import {
   KafkaTopic,
   PartitionOffsets,
 } from "../../kafka/message-from-server";
+import { BackendProcessLogEntry } from "../../kafka/kafka-backend-client";
 
 export const connectToSelectedEnvironment: AsyncAction = async ({
   state,
@@ -190,4 +191,36 @@ export const onUnsubscribedFromRecordsOfTopic: Action<string> = (
       consuming: false,
     };
   }
+};
+
+export const onBackendProcessStarting: Action = ({ state }) => {
+  state.connection.backendState = {
+    status: BackendStatus.STARTING,
+    log: state.connection.backendState.log,
+  };
+};
+
+export const onBackendProcessReady: Action = ({ state }) => {
+  state.connection.backendState = {
+    status: BackendStatus.READY,
+    log: state.connection.backendState.log,
+  };
+};
+
+export const onBackendProcessExit: Action<string> = ({ state }, reason) => {
+  state.connection.backendState = {
+    status: BackendStatus.EXITED,
+    log: state.connection.backendState.log,
+    reason,
+  };
+};
+
+export const onBackendProcessLog: Action<BackendProcessLogEntry> = (
+  { state },
+  logEntry
+) => {
+  state.connection.backendState = {
+    ...state.connection.backendState,
+    log: [...state.connection.backendState.log, logEntry],
+  };
 };
