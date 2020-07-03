@@ -1,5 +1,7 @@
 # Kafka Electron Client
 
+![Screenshot from the app](./screenshot.png)
+
 A simple Kafka client for consuming / producing Kafka records, checking offsets etc. Not by any means full featured, and still very much work in progress. Use at your own risk :)
 
 ## Development
