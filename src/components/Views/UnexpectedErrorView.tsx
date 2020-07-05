@@ -6,7 +6,7 @@ interface Props {
 
 export const UnexpectedErrorView: FunctionComponent<Props> = ({ error }) => {
   return (
-    <div className="flex-1 flex h-full flex-col justify-center items-center text-center">
+    <div className="flex-1 flex h-full flex-col justify-center items-center text-center px-4">
       <p className="my-3 text-lg text-gray-800 font-semibold">Oops</p>
       <p className="my-3 text-lg text-gray-800">
         An unexpected error occurred: {error}
