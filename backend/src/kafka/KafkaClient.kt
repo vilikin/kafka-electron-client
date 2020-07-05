@@ -53,7 +53,11 @@ class KafkaClient {
     val json: String = Gson().toJson(message)
     println("Broadcasting: $json")
     sessions.forEach {
-      runBlocking { it.send(Frame.Text(json)) }
+      runBlocking {
+        it.send(Frame.Text(json))
+        // Dirty hack: Give frame some time to actually get sent, flushing did not work
+        delay(50)
+      }
     }
   }
 
