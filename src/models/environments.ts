@@ -73,7 +73,7 @@ export type KafkaAuthentication =
   | KafkaAuthenticationSasl
   | KafkaAuthenticationNone;
 
-export interface EnvironmentBase {
+export interface Environment {
   id: string;
   name: string;
   color: EnvironmentColor;
@@ -81,12 +81,8 @@ export interface EnvironmentBase {
   authentication: KafkaAuthentication;
 }
 
-export interface EnvironmentDraft extends EnvironmentBase {
+export interface EnvironmentDraft extends Environment {
   editing: boolean;
-}
-
-export interface Environment extends EnvironmentBase {
-  selected: boolean;
 }
 
 export function getTailwindColor(color: EnvironmentColor) {

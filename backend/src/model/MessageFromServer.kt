@@ -4,6 +4,11 @@ import `in`.vilik.kafka.ConsumerGroup
 import `in`.vilik.kafka.Topic
 import `in`.vilik.kafka.PartitionOffsets
 
+enum class DisconnectReason {
+  CLIENT_REQUESTED_DISCONNECT,
+  ALL_WEBSOCKET_SESSIONS_CLOSED,
+  APPLICATION_EXITING
+}
 
 data class KafkaRecord(
   val topic: String,
@@ -20,6 +25,7 @@ sealed class MessageFromServer(
   enum class Type {
     STATUS_CONNECTED,
     STATUS_CONNECTING,
+    STATUS_FAILED_TO_CONNECT,
     STATUS_DISCONNECTED,
     REFRESH_TOPICS,
     REFRESH_CONSUMER_GROUPS,
@@ -42,8 +48,14 @@ class StatusConnecting(
   val environmentId: String
 ) : MessageFromServer(Type.STATUS_CONNECTING)
 
+class StatusFailedToConnect(
+  val environmentId: String,
+  val error: String
+) : MessageFromServer(Type.STATUS_FAILED_TO_CONNECT)
+
 class StatusDisconnected(
-  val reason: String
+  val environmentId: String,
+  val reason: DisconnectReason
 ) : MessageFromServer(Type.STATUS_DISCONNECTED)
 
 class RefreshTopics(

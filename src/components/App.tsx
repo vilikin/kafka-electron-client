@@ -3,52 +3,66 @@ import { useOvermindState } from "../overmind";
 import { Sidebar } from "./Sidebar/Sidebar";
 import { EnvironmentsModal } from "./Environments/EnvironmentsModal";
 import { EnvironmentSelector } from "./Environments/EnvironmentSelector";
-import { BackendStatus, ConnectionStatus } from "../overmind/connection/state";
-import { ConnectingView } from "./ConnectingView";
-import { DisconnectedView } from "./DisconnectedView";
-import { ConnectedView } from "./ConnectedView";
+import { ConnectionStatus } from "../overmind/connection/state";
+import { ConnectedView } from "./Views/ConnectedView";
+import { MainView } from "./Views/MainView";
+import { UnexpectedErrorView } from "./Views/UnexpectedErrorView";
+
+const View: FunctionComponent = () => {
+  const connectionState = useOvermindState().connection.state;
+  const {
+    selectedEnvironment,
+    environmentsObject,
+  } = useOvermindState().environments;
+
+  if (connectionState.status === ConnectionStatus.BACKEND_STARTING) {
+    return <MainView loading="Starting backend process..." />;
+  }
+
+  if (connectionState.status === ConnectionStatus.READY_TO_CONNECT) {
+    return <MainView />;
+  }
+
+  if (connectionState.status === ConnectionStatus.CONNECTING_TO_ENVIRONMENT) {
+    return <MainView loading={`Connecting to ${selectedEnvironment?.name}`} />;
+  }
+
+  if (connectionState.status === ConnectionStatus.FAILED_TO_CONNECT) {
+    return (
+      <MainView
+        error={`Failed to connect to ${
+          environmentsObject[connectionState.environmentId].name
+        }`}
+      />
+    );
+  }
+
+  if (connectionState.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
+    return (
+      <>
+        <Sidebar />
+        <ConnectedView />
+      </>
+    );
+  }
+
+  if (connectionState.status === ConnectionStatus.UNEXPECTED_ERROR) {
+    return <UnexpectedErrorView error={connectionState.error} />;
+  }
+
+  throw new Error("Unhandled connection state");
+};
 
 export const App: FunctionComponent = () => {
   const connectionState = useOvermindState().connection.state;
-  const { backendState } = useOvermindState().connection;
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-x-hidden overflow-y-visible">
-      <EnvironmentSelector />
+      {connectionState.status !== ConnectionStatus.UNEXPECTED_ERROR && (
+        <EnvironmentSelector />
+      )}
       <div className="flex-1 flex items-stretch overflow-y-hidden">
-        {backendState.status === BackendStatus.READY ? (
-          <>
-            {connectionState.status === ConnectionStatus.CONNECTED && (
-              <>
-                <Sidebar />
-                <ConnectedView />
-              </>
-            )}
-            {connectionState.status === ConnectionStatus.CONNECTING && (
-              <ConnectingView />
-            )}
-            {connectionState.status === ConnectionStatus.DISCONNECTED && (
-              <DisconnectedView />
-            )}
-          </>
-        ) : (
-          <>
-            {backendState.status === BackendStatus.STARTING && (
-              <div>Spawning backend process...</div>
-            )}
-
-            {backendState.status === BackendStatus.EXITED && (
-              <div>Backend process has exited: {backendState.reason}</div>
-            )}
-
-            <hr />
-            <pre>
-              {backendState.log.map(
-                (entry) => entry.type + ": " + entry.message + "\n"
-              )}
-            </pre>
-          </>
-        )}
+        <View />
       </div>
       <EnvironmentsModal />
     </div>

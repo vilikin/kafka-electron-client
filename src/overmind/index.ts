@@ -14,9 +14,12 @@ import * as connection from "./connection";
 
 const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
   effects.kafka.init({
-    onConnected: actions.connection.onConnected,
-    onConnecting: actions.connection.onConnecting,
-    onDisconnected: actions.connection.onDisconnected,
+    onBackendStarting: actions.connection.onBackendStarting,
+    onReadyToConnect: actions.connection.onReadyToConnect,
+    onConnectingToEnvironment: actions.connection.onConnectingToEnvironment,
+    onConnectedToEnvironment: actions.connection.onConnectedToEnvironment,
+    onFailedToConnect: actions.connection.onFailedToConnect,
+    onUnexpectedError: actions.connection.onUnexpectedError,
     onRefreshTopics: actions.connection.onRefreshTopics,
     onRefreshConsumerGroups: actions.connection.onRefreshConsumerGroups,
     onRefreshTopicOffsets: actions.connection.onRefreshTopicOffsets,
@@ -25,10 +28,6 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
     onUnsubscribedFromRecordsOfTopic:
       actions.connection.onUnsubscribedFromRecordsOfTopic,
     onRecordsReceived: actions.connection.onRecordsReceived,
-    onError: actions.connection.onError,
-    onBackendProcessStarting: actions.connection.onBackendProcessStarting,
-    onBackendProcessExit: actions.connection.onBackendProcessExit,
-    onBackendProcessReady: actions.connection.onBackendProcessReady,
     onBackendProcessLog: actions.connection.onBackendProcessLog,
   });
 
@@ -40,22 +39,8 @@ const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
     (state) => state.environments.environmentList,
     (environments) =>
       effects.store.saveConfig({
-        environments: environments.map((environment) => ({
-          ...environment,
-          selected: false, // we should not select any environment automatically on startup
-        })),
+        environments,
       })
-  );
-
-  instance.reaction(
-    (state) => state.environments.selectedEnvironment,
-    (selectedEnvironment) => {
-      if (selectedEnvironment) {
-        actions.connection.connectToSelectedEnvironment();
-      } else {
-        actions.connection.disconnect();
-      }
-    }
   );
 };
 

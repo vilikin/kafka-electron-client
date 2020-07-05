@@ -62,10 +62,8 @@ export const copyEnvironmentsToDraftEnvironments: Action = ({ state }) => {
   state.environments.draftEnvironmentsObject = _.mapValues(
     state.environments.environmentsObject,
     (env) => ({
-      ..._.chain(env).cloneDeep().omit("selected").value(),
-      editing: state.environments.selectedEnvironment
-        ? env.selected
-        : state.environments.environmentList[0].id === env.id,
+      ...env,
+      editing: state.environments.environmentList[0].id === env.id,
     })
   );
 };
@@ -114,27 +112,14 @@ export const selectDraftEnvironment: Action<string> = (
 };
 
 export const saveDraftEnvironments: Action = ({ state }) => {
-  state.environments.environmentsObject = _.chain(
-    state.environments.draftEnvironmentsObject
-  )
-    .mapValues((env) => ({
-      ..._.chain(env).cloneDeep().omit("editing").value(),
-      selected: state.environments.selectedEnvironment?.id === env.id,
-    }))
-    .value();
+  state.environments.environmentsObject = _.mapValues(
+    state.environments.draftEnvironmentsObject,
+    (env) => _.chain(env).cloneDeep().omit("editing").value()
+  );
 };
 
 export const discardDraftEnvironments: Action = ({ actions }) => {
   actions.environments.copyEnvironmentsToDraftEnvironments();
-};
-
-export const selectEnvironment: Action<string> = ({ state }, environmentId) => {
-  state.environments.environmentList.forEach((environment) => {
-    state.environments.environmentsObject[environment.id] = {
-      ...state.environments.environmentsObject[environment.id],
-      selected: environment.id === environmentId,
-    };
-  });
 };
 
 export const setEnvironments: Action<Environment[]> = (

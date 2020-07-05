@@ -12,93 +12,100 @@ import io.ktor.http.cio.websocket.pingPeriod
 import io.ktor.http.cio.websocket.readText
 import io.ktor.http.cio.websocket.timeout
 import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.runBlocking
 import java.time.Duration
+import kotlin.system.exitProcess
 
 val kafkaClient = KafkaClient()
 
+@ExperimentalCoroutinesApi
 fun main(args: Array<String>) {
-  io.ktor.server.netty.EngineMain.main(args)
-
   Runtime.getRuntime().addShutdownHook(object : Thread() {
-    override fun run() = runBlocking {
+    override fun run() {
       println("Shutting down gracefully")
-      kafkaClient.disconnect()
+      kafkaClient.disconnect(DisconnectReason.APPLICATION_EXITING)
     }
   })
-}
 
-@ExperimentalCoroutinesApi
-@Suppress("unused") // Referenced in application.conf
-fun Application.module() {
-  install(CORS) {
-    anyHost()
-    HttpMethod.DefaultMethods.forEach { method(it) }
-    header(HttpHeaders.ContentType)
-  }
+  try {
+    embeddedServer(Netty, 37452) {
+      install(CORS) {
+        anyHost()
+        HttpMethod.DefaultMethods.forEach { method(it) }
+        header(HttpHeaders.ContentType)
+      }
 
-  install(WebSockets) {
-    pingPeriod = Duration.ofSeconds(15)
-    timeout = Duration.ofSeconds(15)
-    maxFrameSize = Long.MAX_VALUE
-    masking = false
-  }
+      install(WebSockets) {
+        pingPeriod = Duration.ofSeconds(15)
+        timeout = Duration.ofSeconds(15)
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
+      }
 
-  routing {
-    webSocket("/") {
-      kafkaClient.addSession(this)
+      routing {
+        webSocket("/") {
+          kafkaClient.addSession(this)
 
-      try {
-        incoming.consumeEach { frame ->
-          when (frame) {
-            is Frame.Text -> {
-              val text = frame.readText()
-              println("Received: $text")
+          try {
+            incoming.consumeEach { frame ->
+              when (frame) {
+                is Frame.Text -> {
+                  val text = frame.readText()
+                  println("Received: $text")
 
-              when (val messageFromClient = MessageFromClient.parse(text)) {
-                is RequestConnect -> kafkaClient.connect(
-                  messageFromClient.environmentId,
-                  messageFromClient.brokers,
-                  messageFromClient.authenticationStrategy,
-                  messageFromClient.username,
-                  messageFromClient.password
-                )
-                is RequestDisconnect -> kafkaClient.disconnect()
-                is SubscribeToRecordsOfTopic -> kafkaClient.subscribeToRecordsOfTopic(
-                  messageFromClient.topic
-                )
-                is UnsubscribeFromRecordsOfTopic -> kafkaClient.unsubscribeFromRecordsOfTopic(
-                  messageFromClient.topic
-                )
-                is SubscribeToOffsetsOfConsumerGroup ->
-                  kafkaClient.subscribeToOffsetsOfConsumerGroup(
-                    messageFromClient.groupId
-                  )
-                is UnsubscribeFromOffsetsOfConsumerGroup ->
-                  kafkaClient.unsubscribeFromOffsetsOfConsumerGroup(
-                    messageFromClient.groupId
-                  )
-                is SubscribeToOffsetsOfTopic -> kafkaClient.subscribeToOffsetsOfTopic(
-                  messageFromClient.topic
-                )
-                is UnsubscribeFromOffsetsOfTopic -> kafkaClient.unsubscribeFromOffsetsOfTopic(
-                  messageFromClient.topic
-                )
+                  when (val messageFromClient = MessageFromClient.parse(text)) {
+                    is RequestConnect -> kafkaClient.connect(
+                      messageFromClient.environmentId,
+                      messageFromClient.brokers,
+                      messageFromClient.authenticationStrategy,
+                      messageFromClient.username,
+                      messageFromClient.password
+                    )
+                    is RequestDisconnect -> kafkaClient.disconnect(DisconnectReason.CLIENT_REQUESTED_DISCONNECT)
+                    is SubscribeToRecordsOfTopic -> kafkaClient.subscribeToRecordsOfTopic(
+                      messageFromClient.topic
+                    )
+                    is UnsubscribeFromRecordsOfTopic -> kafkaClient.unsubscribeFromRecordsOfTopic(
+                      messageFromClient.topic
+                    )
+                    is SubscribeToOffsetsOfConsumerGroup ->
+                      kafkaClient.subscribeToOffsetsOfConsumerGroup(
+                        messageFromClient.groupId
+                      )
+                    is UnsubscribeFromOffsetsOfConsumerGroup ->
+                      kafkaClient.unsubscribeFromOffsetsOfConsumerGroup(
+                        messageFromClient.groupId
+                      )
+                    is SubscribeToOffsetsOfTopic -> kafkaClient.subscribeToOffsetsOfTopic(
+                      messageFromClient.topic
+                    )
+                    is UnsubscribeFromOffsetsOfTopic -> kafkaClient.unsubscribeFromOffsetsOfTopic(
+                      messageFromClient.topic
+                    )
+                  }
+                }
+
+                is Frame.Close -> {
+                  kafkaClient.removeSession(this)
+                }
               }
             }
-
-            is Frame.Close -> {
-              kafkaClient.removeSession(this)
-            }
+          } finally {
+            kafkaClient.removeSession(this)
           }
         }
-      } finally {
-        kafkaClient.removeSession(this)
       }
-    }
+    }.start(wait = false)
+  } catch (e: Exception) {
+    println("Exception occurred while starting up the server, exiting")
+    e.printStackTrace()
+    exitProcess(1)
   }
 }
+
+

@@ -1,5 +1,5 @@
 import { Action, AsyncAction } from "overmind";
-import { BackendStatus, ConnectionStatus, KafkaTopicState } from "./state";
+import { ConnectionStatus, KafkaTopicState } from "./state";
 import * as _ from "lodash";
 import {
   KafkaConsumerGroup,
@@ -9,66 +9,89 @@ import {
 } from "../../kafka/message-from-server";
 import { BackendProcessLogEntry } from "../../kafka/kafka-backend-client";
 
-export const connectToSelectedEnvironment: AsyncAction = async ({
-  state,
-  actions,
-  effects,
-}) => {
+export const connect: AsyncAction<string> = async (
+  { state, actions, effects },
+  environmentId
+) => {
   const { connection, environments } = state;
-  if (environments.selectedEnvironment) {
-    if (connection.state.status === ConnectionStatus.CONNECTED) {
-      if (
-        connection.state.environmentId === environments.selectedEnvironment.id
-      ) {
-        return;
-      }
+  const environment = environments.environmentsObject[environmentId];
 
-      await actions.connection.disconnect();
-    }
+  if (
+    connection.state.status === ConnectionStatus.READY_TO_CONNECT ||
+    connection.state.status === ConnectionStatus.FAILED_TO_CONNECT
+  ) {
+    await effects.kafka.connect(environment);
+  }
 
-    await effects.kafka.connect(environments.selectedEnvironment);
+  if (connection.state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
+    await effects.kafka.disconnect();
+    await effects.kafka.connect(environment);
   }
 };
 
 export const disconnect: AsyncAction = async ({ effects, state }) => {
-  if (state.connection.state.status !== ConnectionStatus.DISCONNECTED) {
+  if (
+    state.connection.state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT
+  ) {
     await effects.kafka.disconnect();
   }
 };
 
-export const onDisconnected: Action = ({ state }) => {
+export const onBackendStarting: Action = ({ state }) => {
   state.connection.state = {
-    status: ConnectionStatus.DISCONNECTED,
-    error: null,
+    status: ConnectionStatus.BACKEND_STARTING,
   };
 };
 
-export const onConnected: Action<string> = (
+export const onReadyToConnect: Action = ({ state }) => {
+  state.connection.state = {
+    status: ConnectionStatus.READY_TO_CONNECT,
+  };
+};
+
+export const onConnectingToEnvironment: Action<string> = (
+  { state },
+  environmentId
+) => {
+  state.connection.state = {
+    status: ConnectionStatus.CONNECTING_TO_ENVIRONMENT,
+    environmentId,
+  };
+};
+
+export const onConnectedToEnvironment: Action<string> = (
   { state, effects, actions },
   environmentId
 ) => {
   actions.routing.showMainPage();
 
   state.connection.state = {
-    status: ConnectionStatus.CONNECTED,
+    status: ConnectionStatus.CONNECTED_TO_ENVIRONMENT,
     environmentId,
     topics: {},
     consumerGroups: {},
   };
 };
 
-export const onConnecting: Action<string> = ({ state }, environmentId) => {
+export const onFailedToConnect: Action<string> = ({ state }, environmentId) => {
   state.connection.state = {
-    status: ConnectionStatus.CONNECTING,
+    status: ConnectionStatus.FAILED_TO_CONNECT,
     environmentId,
   };
 };
 
-export const onError: Action<Error> = ({ state }, error) => {
+export const onUnexpectedError: Action<string> = ({ state }, error) => {
   state.connection.state = {
-    status: ConnectionStatus.DISCONNECTED,
-    error: error.message,
+    status: ConnectionStatus.UNEXPECTED_ERROR,
+    error,
   };
+};
+
+export const onBackendProcessLog: Action<BackendProcessLogEntry[]> = (
+  { state },
+  logEntries
+) => {
+  state.connection.backendLog = [...state.connection.backendLog, ...logEntries];
 };
 
 export const onRefreshTopics: Action<KafkaTopic[]> = (
@@ -82,7 +105,7 @@ export const onRefreshTopics: Action<KafkaTopic[]> = (
   const newTopicsObj: { [key: string]: KafkaTopicState } = {};
 
   topics.forEach((topic) => {
-    if (state.status === ConnectionStatus.CONNECTED) {
+    if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
       newTopicsObj[topic.id] = state.topics[topic.id] ?? {
         id: topic.id,
         isInternal: topic.isInternal,
@@ -93,7 +116,7 @@ export const onRefreshTopics: Action<KafkaTopic[]> = (
     }
   });
 
-  if (state.status === ConnectionStatus.CONNECTED) {
+  if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     rootState.connection.state = {
       ...state,
       topics: newTopicsObj,
@@ -109,7 +132,7 @@ export const onRefreshConsumerGroups: Action<KafkaConsumerGroup[]> = (
     connection: { state },
   } = rootState;
 
-  if (state.status === ConnectionStatus.CONNECTED) {
+  if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     rootState.connection.state = {
       ...state,
       consumerGroups: _.keyBy(consumerGroups, "id"),
@@ -125,7 +148,7 @@ export const onRefreshTopicOffsets: Action<PartitionOffsets[]> = (
     connection: { state },
   } = rootState;
 
-  if (state.status === ConnectionStatus.CONNECTED) {
+  if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     const topics = _.cloneDeep(state.topics);
     offsets.forEach((partitionOffsets) => {
       topics[partitionOffsets.topic].partitions = topics[
@@ -151,7 +174,7 @@ export const onRecordsReceived: Action<KafkaRecord[]> = (
     connection: { state },
   } = rootState;
 
-  if (state.status === ConnectionStatus.CONNECTED) {
+  if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     records.forEach((record) => {
       state.topics[record.topic].records = _.takeRight(
         [...state.topics[record.topic].records, record],
@@ -169,7 +192,7 @@ export const onSubscribedToRecordsOfTopic: Action<string> = (
     connection: { state },
   } = rootState;
 
-  if (state.status === ConnectionStatus.CONNECTED) {
+  if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     state.topics[topic] = {
       ...state.topics[topic],
       consuming: true,
@@ -185,42 +208,10 @@ export const onUnsubscribedFromRecordsOfTopic: Action<string> = (
     connection: { state },
   } = rootState;
 
-  if (state.status === ConnectionStatus.CONNECTED) {
+  if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     state.topics[topic] = {
       ...state.topics[topic],
       consuming: false,
     };
   }
-};
-
-export const onBackendProcessStarting: Action = ({ state }) => {
-  state.connection.backendState = {
-    status: BackendStatus.STARTING,
-    log: state.connection.backendState.log,
-  };
-};
-
-export const onBackendProcessReady: Action = ({ state }) => {
-  state.connection.backendState = {
-    status: BackendStatus.READY,
-    log: state.connection.backendState.log,
-  };
-};
-
-export const onBackendProcessExit: Action<string> = ({ state }, reason) => {
-  state.connection.backendState = {
-    status: BackendStatus.EXITED,
-    log: state.connection.backendState.log,
-    reason,
-  };
-};
-
-export const onBackendProcessLog: Action<BackendProcessLogEntry> = (
-  { state },
-  logEntry
-) => {
-  state.connection.backendState = {
-    ...state.connection.backendState,
-    log: [...state.connection.backendState.log, logEntry],
-  };
 };

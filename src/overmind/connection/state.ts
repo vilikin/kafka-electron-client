@@ -6,16 +6,13 @@ import {
 } from "../../kafka/message-from-server";
 import { BackendProcessLogEntry } from "../../kafka/kafka-backend-client";
 
-export enum BackendStatus {
-  STARTING = "STARTING",
-  READY = "READY",
-  EXITED = "EXITED",
-}
-
 export enum ConnectionStatus {
-  CONNECTING = "CONNECTING",
-  CONNECTED = "CONNECTED",
-  DISCONNECTED = "DISCONNECTED",
+  BACKEND_STARTING = "BACKEND_STARTING",
+  READY_TO_CONNECT = "READY_TO_CONNECT",
+  CONNECTING_TO_ENVIRONMENT = "CONNECTING_TO_ENVIRONMENT",
+  CONNECTED_TO_ENVIRONMENT = "CONNECTED_TO_ENVIRONMENT",
+  FAILED_TO_CONNECT = "FAILED_TO_CONNECT",
+  UNEXPECTED_ERROR = "UNEXPECTED_ERROR",
 }
 
 export interface KafkaTopicPartitionState extends KafkaTopicPartition {
@@ -31,74 +28,64 @@ export interface KafkaTopicState {
   consuming: boolean;
 }
 
+export type ConnectionStateStartingBackend = {
+  status: ConnectionStatus.BACKEND_STARTING;
+};
+
+export type ConnectionStateReadyToConnect = {
+  status: ConnectionStatus.READY_TO_CONNECT;
+};
+
+export type ConnectionStateUnexpectedError = {
+  status: ConnectionStatus.UNEXPECTED_ERROR;
+  error: string;
+};
+
 export type ConnectionStateConnected = {
-  status: ConnectionStatus.CONNECTED;
+  status: ConnectionStatus.CONNECTED_TO_ENVIRONMENT;
   environmentId: string;
   topics: { [key: string]: KafkaTopicState };
   consumerGroups: { [key: string]: KafkaConsumerGroup };
 };
 
 export type ConnectionStateConnecting = {
-  status: ConnectionStatus.CONNECTING;
+  status: ConnectionStatus.CONNECTING_TO_ENVIRONMENT;
   environmentId: string;
 };
 
-export type ConnectionStateDisconnected = {
-  status: ConnectionStatus.DISCONNECTED;
-  error: string | null;
+export type ConnectionStateFailedToConnect = {
+  status: ConnectionStatus.FAILED_TO_CONNECT;
+  environmentId: string;
 };
 
 export type ConnectionState =
+  | ConnectionStateStartingBackend
+  | ConnectionStateReadyToConnect
+  | ConnectionStateUnexpectedError
   | ConnectionStateConnecting
   | ConnectionStateConnected
-  | ConnectionStateDisconnected;
-
-export type BackendStateStarting = {
-  status: BackendStatus.STARTING;
-  log: BackendProcessLogEntry[];
-};
-
-export type BackendStateReady = {
-  status: BackendStatus.READY;
-  log: BackendProcessLogEntry[];
-};
-
-export type BackendStateExited = {
-  status: BackendStatus.EXITED;
-  log: BackendProcessLogEntry[];
-  reason: string;
-};
-
-export type BackendState =
-  | BackendStateStarting
-  | BackendStateReady
-  | BackendStateExited;
+  | ConnectionStateFailedToConnect;
 
 export type ConnectionRootState = {
   state: ConnectionState;
-  backendState: BackendState;
+  backendLog: BackendProcessLogEntry[];
   topicList: KafkaTopicState[];
   consumerGroupList: KafkaConsumerGroup[];
 };
 
 export const state: ConnectionRootState = {
   state: {
-    status: ConnectionStatus.DISCONNECTED,
-    error: null,
+    status: ConnectionStatus.BACKEND_STARTING,
   },
-  backendState: {
-    status: BackendStatus.EXITED,
-    log: [],
-    reason: "Initial state",
-  },
+  backendLog: [],
   topicList: derived<ConnectionRootState, KafkaTopicState[]>((state) => {
-    return state.state.status === ConnectionStatus.CONNECTED
+    return state.state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT
       ? Object.values(state.state.topics)
       : [];
   }),
   consumerGroupList: derived<ConnectionRootState, KafkaConsumerGroup[]>(
     (state) => {
-      return state.state.status === ConnectionStatus.CONNECTED
+      return state.state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT
         ? Object.values(state.state.consumerGroups)
         : [];
     }

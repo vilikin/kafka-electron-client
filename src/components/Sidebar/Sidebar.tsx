@@ -14,7 +14,7 @@ export const Sidebar: FunctionComponent = () => {
   const { routing } = useOvermindState();
   const { showTopicPage, showConsumerGroupPage } = useActions().routing;
 
-  if (state.status !== ConnectionStatus.CONNECTED) {
+  if (state.status !== ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     throw new Error("Can't render Sidebar while not being connected");
   }
 

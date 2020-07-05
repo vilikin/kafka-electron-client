@@ -1,5 +1,6 @@
 import { Environment, KafkaAuthenticationMethod } from "../models/environments";
 import {
+  DisconnectReason,
   KafkaConsumerGroup,
   KafkaRecord,
   KafkaTopic,
@@ -27,74 +28,89 @@ export interface BackendProcessLogEntry {
 }
 
 export interface KafkaClientCallbacks {
-  onConnected: (environmentId: string) => void;
-  onDisconnected: (reason: string) => void;
-  onConnecting: (environmentId: string) => void;
+  onBackendStarting: () => void;
+  onReadyToConnect: () => void;
+  onConnectedToEnvironment: (environmentId: string) => void;
+  onConnectingToEnvironment: (environmentId: string) => void;
+  onFailedToConnect: (environmentId: string) => void;
+  onUnexpectedError: (error: string) => void;
   onRefreshTopics: (topics: KafkaTopic[]) => void;
   onRefreshConsumerGroups: (consumerGroups: KafkaConsumerGroup[]) => void;
   onRefreshTopicOffsets: (topicOffsets: PartitionOffsets[]) => void;
   onRecordsReceived: (records: KafkaRecord[]) => void;
   onSubscribedToRecordsOfTopic: (topic: string) => void;
   onUnsubscribedFromRecordsOfTopic: (topic: string) => void;
-  onError: (error: Error) => void;
-  onBackendProcessStarting: () => void;
-  onBackendProcessReady: () => void;
-  onBackendProcessExit: (reason: string) => void;
-  onBackendProcessLog: (entry: BackendProcessLogEntry) => void;
+  onBackendProcessLog: (entries: BackendProcessLogEntry[]) => void;
 }
 
 export class KafkaBackendClient {
   private ws: WebSocket | null = null;
   private callbacks: KafkaClientCallbacks | null = null;
+  private backendProcessLogBuffer: BackendProcessLogEntry[] = [];
 
   public async init(callbacks: KafkaClientCallbacks) {
     this.callbacks = callbacks;
-    this.callbacks.onBackendProcessStarting();
+    this.callbacks.onBackendStarting();
 
     try {
       const backend = await spawnBackendProcess();
 
       backend.stdout.on("data", (message) => {
-        console.log(`backend stdout: ${message}`);
-        this.callbacks?.onBackendProcessLog({ type: "log", message });
+        this.backendProcessLogBuffer.push({
+          type: "log",
+          message: message.toString(),
+        });
       });
 
       backend.stderr.on("data", (message) => {
-        console.log(`backend stderr: ${message}`);
-        this.callbacks?.onBackendProcessLog({ type: "error", message });
+        this.backendProcessLogBuffer.push({
+          type: "error",
+          message: message.toString(),
+        });
+      });
+
+      backend.on("exit", (exitCode) => {
+        callbacks.onUnexpectedError("Backend exited with code " + exitCode);
       });
 
       backend.on("close", (exitCode) => {
-        this.callbacks?.onBackendProcessExit(
-          "Backend exited with code " + exitCode
-        );
+        callbacks.onUnexpectedError("Backend exited with code " + exitCode);
       });
     } catch (e) {
-      this.callbacks.onBackendProcessExit(e.toString());
+      callbacks.onUnexpectedError(
+        "Failed to start backend process: " + e.toString()
+      );
       return;
     }
-
-    this.callbacks.onBackendProcessReady();
 
     const ws = new WebSocket("ws://localhost:37452");
 
     ws.onopen = () => {
       console.log("WebSocket connection with backend established");
       this.ws = ws;
+      callbacks.onReadyToConnect();
     };
 
     ws.onclose = () => {
+      console.error("WebSocket connection with backend was closed");
       this.ws = null;
-      callbacks.onDisconnected("WebSocket connection with backend closed");
-      callbacks.onError(
-        new Error("WebSocket connection with backend was closed")
-      );
-      console.log("WebSocket connection with backend was closed");
+      callbacks.onUnexpectedError("WebSocket connection with backend closed");
     };
 
     ws.onmessage = (event) => {
       this.receiveMessageFromServer(JSON.parse(event.data));
     };
+
+    // We flush backend process logs periodically, as it can cause problems
+    // if we spam Overmind with every single log entry separately. Especially
+    // when backend connects to Kafka, it can produce a lot of logs which can
+    // delay more important state updates from happening.
+    setInterval(() => {
+      if (this.backendProcessLogBuffer.length > 0) {
+        callbacks.onBackendProcessLog(this.backendProcessLogBuffer);
+        this.backendProcessLogBuffer = [];
+      }
+    }, 500);
   }
 
   private receiveMessageFromServer(messageFromServer: MessageFromServer) {
@@ -108,13 +124,31 @@ export class KafkaBackendClient {
 
     switch (messageFromServer.type) {
       case MessageFromServerType.STATUS_CONNECTED:
-        this.callbacks.onConnected(messageFromServer.environmentId);
+        this.callbacks.onConnectedToEnvironment(
+          messageFromServer.environmentId
+        );
         return;
       case MessageFromServerType.STATUS_CONNECTING:
-        this.callbacks.onConnecting(messageFromServer.environmentId);
+        this.callbacks.onConnectingToEnvironment(
+          messageFromServer.environmentId
+        );
+        return;
+      case MessageFromServerType.STATUS_FAILED_TO_CONNECT:
+        this.callbacks.onFailedToConnect(messageFromServer.environmentId);
         return;
       case MessageFromServerType.STATUS_DISCONNECTED:
-        this.callbacks.onDisconnected(messageFromServer.reason);
+        if (
+          messageFromServer.reason ===
+          DisconnectReason.CLIENT_REQUESTED_DISCONNECT
+        ) {
+          this.callbacks.onReadyToConnect();
+          return;
+        }
+
+        this.callbacks.onUnexpectedError(
+          "Backend client disconnected with the following reason: " +
+            messageFromServer.reason
+        );
         return;
       case MessageFromServerType.REFRESH_TOPICS:
         this.callbacks.onRefreshTopics(messageFromServer.topics);
@@ -152,7 +186,6 @@ export class KafkaBackendClient {
   }
 
   public connect(environment: Environment) {
-    console.log(environment);
     const message: RequestConnect = {
       type: MessageFromClientType.REQUEST_CONNECT,
       environmentId: environment.id,

@@ -32,7 +32,7 @@ export async function spawnBackendProcess(): Promise<
       console.log("Spawning backend process from " + backendJarPath);
       const backend = spawn("java", ["-jar", backendJarPath]);
 
-      window.addEventListener("beforeunload", function (e) {
+      window.addEventListener("beforeunload", () => {
         backend.kill();
       });
 

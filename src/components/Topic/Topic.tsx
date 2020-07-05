@@ -28,7 +28,7 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
 
   // Scroll to bottom when new records arrive
   const scrollEffectDeps =
-    connection.state.status === ConnectionStatus.CONNECTED
+    connection.state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT
       ? [connection.state.topics[topicName].records]
       : [];
 
@@ -38,7 +38,7 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
     }
   }, scrollEffectDeps); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (connection.state.status !== ConnectionStatus.CONNECTED) {
+  if (connection.state.status !== ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     throw new Error("Not connected");
   }
 
@@ -65,7 +65,7 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
 
   return (
     <div className="flex-1 flex h-full flex-col p-2 px-4 overflow-hidden">
-      <h1 className="text-lg text-gray-700 pb-1 font-semibold truncate break-all">
+      <h1 className="text-lg text-gray-800 pb-1 font-semibold truncate break-all">
         {topic.id}
       </h1>
       <div className="text-gray-600 mb-3">

@@ -45,7 +45,7 @@ class KafkaClient {
     println("Removing session")
     sessions.removeIf { it === session }
     if (sessions.isEmpty()) {
-      disconnect()
+      disconnect(DisconnectReason.ALL_WEBSOCKET_SESSIONS_CLOSED)
     }
   }
 
@@ -120,7 +120,7 @@ class KafkaClient {
         consumer?.close()
         adminClient?.close()
         state = KafkaClientStateDisconnected()
-        broadcast(StatusDisconnected(e.message ?: "Exception"))
+        broadcast(StatusFailedToConnect(environmentId, e.message ?: e.javaClass.name))
       }
     } else {
       throw Exception("Already connected/connecting")
@@ -252,7 +252,7 @@ class KafkaClient {
     }
   }
 
-  fun disconnect() {
+  fun disconnect(reason: DisconnectReason) {
     (state as? KafkaClientStateConnected)?.let { connectedState ->
       connectedState.refreshTopicsTimer.cancel()
       connectedState.refreshConsumerGroupsAndTopicOffsetsTimer.cancel()
@@ -266,7 +266,7 @@ class KafkaClient {
       connectedState.adminClient.close()
 
       state = KafkaClientStateDisconnected()
-      broadcast(StatusDisconnected("Disconnect requested by client"))
+      broadcast(StatusDisconnected(connectedState.environmentId, reason))
     }
   }
 }
