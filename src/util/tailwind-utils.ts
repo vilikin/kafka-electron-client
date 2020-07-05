@@ -1,8 +1,8 @@
-import { EnvironmentBase, getTailwindColor } from "../models/environments";
+import { Environment, getTailwindColor } from "../models/environments";
 
 export function replaceEnvColor(
   classString: string,
-  environment: EnvironmentBase | null
+  environment: Environment | null
 ): string {
   return classString.replace(
     /envcolor/g,

@@ -12,10 +12,6 @@ export interface AppConfig {
   environments: Environment[];
 }
 
-export type Params = {
-  [key: string]: string;
-};
-
 export const store = {
   async saveConfig(config: AppConfig) {
     const serializedConfig = JSON.stringify(config, null, 4);

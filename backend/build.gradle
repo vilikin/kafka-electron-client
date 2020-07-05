@@ -15,7 +15,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'in.vilik'
 version '0.0.1'
-mainClassName = "io.ktor.server.netty.EngineMain"
+mainClassName = "in.vilik.ApplicationKt"
 
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src']

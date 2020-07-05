@@ -5,22 +5,27 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { FaCaretDown, FaCircle, FaCog } from "react-icons/fa";
+import { FaCaretDown, FaCircle, FaCog, FaSignOutAlt } from "react-icons/fa";
 import classNames from "classnames";
 import { useActions, useOvermindState } from "../../overmind";
 import { replaceEnvColor } from "../../util/tailwind-utils";
+import { ConnectionStatus } from "../../overmind/connection/state";
 
 export const EnvironmentSelector: FunctionComponent = () => {
-  const {
-    openEnvironmentsModal,
-    selectEnvironment,
-  } = useActions().environments;
+  const { openEnvironmentsModal } = useActions().environments;
+  const { disconnect, connect } = useActions().connection;
   const {
     selectedEnvironment,
     environmentList,
   } = useOvermindState().environments;
+  const { status: connectionStatus } = useOvermindState().connection.state;
   const envSelectorAndDropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const connectingDisabled =
+    connectionStatus === ConnectionStatus.UNEXPECTED_ERROR ||
+    connectionStatus === ConnectionStatus.BACKEND_STARTING ||
+    connectionStatus === ConnectionStatus.CONNECTING_TO_ENVIRONMENT;
 
   const handlePotentialOutsideClick = useCallback((event) => {
     if (envSelectorAndDropdownRef.current?.contains(event.target)) {
@@ -49,11 +54,16 @@ export const EnvironmentSelector: FunctionComponent = () => {
 
   const handleEnvironmentClick = useCallback(
     (environment) => {
-      selectEnvironment(environment.id);
+      connect(environment.id);
       setDropdownOpen(false);
     },
-    [selectEnvironment]
+    [connect]
   );
+
+  const handleDisconnectClick = useCallback(() => {
+    disconnect();
+    setDropdownOpen(false);
+  }, [disconnect]);
 
   return (
     <div className="flex-auto flex-grow-0 flex-shrink-0">
@@ -74,13 +84,13 @@ export const EnvironmentSelector: FunctionComponent = () => {
             <span className="mr-1">
               {selectedEnvironment !== null
                 ? selectedEnvironment.name
-                : "No environment"}
+                : "Connect"}
             </span>
             <FaCaretDown />
           </button>
           <div
             className={classNames(
-              "absolute z-40 mt-4 border border-gray-400 shadow-md bg-white rounded-md py-2",
+              "absolute z-40 mt-4 border border-gray-400 shadow-md bg-white rounded-md py-1",
               { hidden: !dropdownOpen }
             )}
           >
@@ -91,7 +101,8 @@ export const EnvironmentSelector: FunctionComponent = () => {
                     <li key={environment.id}>
                       <button
                         onClick={() => handleEnvironmentClick(environment)}
-                        className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-900"
+                        disabled={connectingDisabled}
+                        className="hover:bg-gray-200 py-2 px-4 flex w-full items-center text-gray-900"
                       >
                         <FaCircle
                           className={replaceEnvColor(
@@ -99,24 +110,40 @@ export const EnvironmentSelector: FunctionComponent = () => {
                             environment
                           )}
                         />
-                        <span className="ml-3 text-md">{environment.name}</span>
+                        <span className="ml-4 text-md">{environment.name}</span>
                       </button>
                     </li>
                   ))}
                 </ul>
-                <hr className="my-2" />
+                <hr className="my-1" />
               </>
             )}
             <ul>
+              {connectionStatus ===
+                ConnectionStatus.CONNECTED_TO_ENVIRONMENT && (
+                <li>
+                  <button
+                    className="hover:bg-gray-200 py-2 px-4 flex w-full items-center text-gray-900"
+                    onClick={handleDisconnectClick}
+                  >
+                    <FaSignOutAlt
+                      className={`text-md flex-auto flex-shrink-0 flex-grow-0 text-gray-700`}
+                    />
+                    <span className="ml-4 tracking-wide text-md">
+                      Disconnect
+                    </span>
+                  </button>
+                </li>
+              )}
               <li>
                 <button
-                  className="hover:bg-gray-200 py-2 px-3 flex w-full items-center text-gray-900"
+                  className="hover:bg-gray-200 py-2 px-4 flex w-full items-center text-gray-900"
                   onClick={openEnvironmentConfig}
                 >
                   <FaCog
                     className={`text-md flex-auto flex-shrink-0 flex-grow-0 text-gray-700`}
                   />
-                  <span className="ml-3 tracking-wide text-md">
+                  <span className="ml-4 tracking-wide text-md">
                     Edit&nbsp;environments
                   </span>
                 </button>

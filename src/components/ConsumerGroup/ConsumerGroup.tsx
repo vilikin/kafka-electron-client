@@ -12,7 +12,7 @@ export const ConsumerGroup: FunctionComponent<ConsumerGroupProps> = ({
 }) => {
   const { connection } = useOvermindState();
 
-  if (connection.state.status !== ConnectionStatus.CONNECTED) {
+  if (connection.state.status !== ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
     throw new Error("Not connected");
   }
 
@@ -25,7 +25,7 @@ export const ConsumerGroup: FunctionComponent<ConsumerGroupProps> = ({
 
   return (
     <div className="flex-1 flex h-full flex-col p-2 px-4">
-      <h1 className="text-lg text-gray-700 mb-3 font-semibold truncate break-all">
+      <h1 className="text-lg text-gray-800 mb-3 font-semibold truncate break-all">
         {consumerGroup.id}
       </h1>
       <table className="w-100 overflow-x-scroll">
@@ -39,7 +39,10 @@ export const ConsumerGroup: FunctionComponent<ConsumerGroupProps> = ({
           )}
         </tr>
         {Object.keys(offsetsGroupedByTopic).map((topic) => {
-          if (connection.state.status === ConnectionStatus.CONNECTED) {
+          if (
+            connection.state.status ===
+            ConnectionStatus.CONNECTED_TO_ENVIRONMENT
+          ) {
             const consumerGroupPartitionOffsets = offsetsGroupedByTopic[topic];
             const partitionOffsets = connection.state.topics[topic].partitions;
 

@@ -1,19 +1,19 @@
 import {
   draftEnvironmentContainsErrors,
   Environment,
-  EnvironmentBase,
   EnvironmentDraft,
 } from "../../models/environments";
 import { derived } from "overmind";
 import * as _ from "lodash";
+import { ConnectionStatus } from "../connection/state";
 
 export type EnvironmentsState = {
   environmentsObject: EnvironmentsObject;
   draftEnvironmentsObject: DraftEnvironmentsObject;
   environmentsModalOpen: boolean;
   environmentList: Environment[];
-  draftEnvironmentList: EnvironmentDraft[];
   selectedEnvironment: Environment | null;
+  draftEnvironmentList: EnvironmentDraft[];
   draftEnvironmentBeingEdited: EnvironmentDraft | null;
   draftEnvironmentIdsWithErrors: string[];
   draftEnvironmentsHaveUnsavedChanges: boolean;
@@ -35,8 +35,19 @@ export const state: EnvironmentsState = {
     Object.values(state.environmentsObject)
   ),
   selectedEnvironment: derived<EnvironmentsState, Environment | null>(
-    (state) =>
-      state.environmentList.find((environment) => environment.selected) ?? null
+    (state, rootState) => {
+      if (
+        rootState.connection.state.status ===
+          ConnectionStatus.CONNECTING_TO_ENVIRONMENT ||
+        rootState.connection.state.status ===
+          ConnectionStatus.CONNECTED_TO_ENVIRONMENT
+      ) {
+        const { environmentId } = rootState.connection.state;
+        return state.environmentsObject[environmentId];
+      }
+
+      return null;
+    }
   ),
   draftEnvironmentList: derived<EnvironmentsState, EnvironmentDraft[]>(
     (state) => Object.values(state.draftEnvironmentsObject)
@@ -56,14 +67,11 @@ export const state: EnvironmentsState = {
   ),
   draftEnvironmentsHaveUnsavedChanges: derived<EnvironmentsState, boolean>(
     (state) => {
-      const normalizedEnvironments: EnvironmentBase[] = state.environmentList.map(
-        (env) => _.omit(env, "selected")
-      );
-      const normalizedDraftEnvironments: EnvironmentBase[] = state.draftEnvironmentList.map(
+      const normalizedDraftEnvironments: Environment[] = state.draftEnvironmentList.map(
         (env) => _.omit(env, "editing")
       );
 
-      return !_.isEqual(normalizedEnvironments, normalizedDraftEnvironments);
+      return !_.isEqual(state.environmentList, normalizedDraftEnvironments);
     }
   ),
 };
