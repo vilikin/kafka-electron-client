@@ -20,7 +20,7 @@ import {
   UnsubscribeFromOffsetsOfTopic,
   UnsubscribeFromRecordsOfTopic,
 } from "./message-from-client";
-import { spawnBackendProcess } from "./backend-process";
+import { findFreePort, spawnBackendProcess } from "./backend-process";
 
 export interface BackendProcessLogEntry {
   type: "log" | "error";
@@ -52,8 +52,10 @@ export class KafkaBackendClient {
     this.callbacks = callbacks;
     this.callbacks.onBackendStarting();
 
+    const port = await findFreePort();
+
     try {
-      const backend = await spawnBackendProcess(37452);
+      const backend = await spawnBackendProcess(port);
 
       backend.stdout.on("data", (message) => {
         this.backendProcessLogBuffer.push({
@@ -83,7 +85,7 @@ export class KafkaBackendClient {
       return;
     }
 
-    const ws = new WebSocket("ws://localhost:37452");
+    const ws = new WebSocket(`ws://localhost:${port}`);
 
     ws.onopen = () => {
       console.log("WebSocket connection with backend established");
