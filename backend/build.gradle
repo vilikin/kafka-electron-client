@@ -29,6 +29,7 @@ repositories {
     jcenter()
     maven { url 'https://artifactory.cronapp.io/public-release/' }
     maven { url 'https://kotlin.bintray.com/ktor' }
+    maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
 dependencies {
@@ -37,6 +38,7 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:$logback_version"
     implementation "io.ktor:ktor-server-core:$ktor_version"
     implementation "io.ktor:ktor-websockets:$ktor_version"
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.2.1")
     compile "com.google.code.gson:gson:2.8.5"
     compile "com.google.code.gson:gson-extras:2.8.5"
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"

@@ -53,7 +53,7 @@ export class KafkaBackendClient {
     this.callbacks.onBackendStarting();
 
     try {
-      const backend = await spawnBackendProcess();
+      const backend = await spawnBackendProcess(37452);
 
       backend.stdout.on("data", (message) => {
         this.backendProcessLogBuffer.push({
