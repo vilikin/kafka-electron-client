@@ -22,15 +22,20 @@ function getBackendJarPath() {
   return backendJarPath;
 }
 
-export async function spawnBackendProcess(): Promise<
-  ChildProcessWithoutNullStreams
-> {
+export async function spawnBackendProcess(
+  port: number
+): Promise<ChildProcessWithoutNullStreams> {
   return new Promise(async (resolve, reject) => {
     try {
       const backendJarPath = getBackendJarPath();
 
       console.log("Spawning backend process from " + backendJarPath);
-      const backend = spawn("java", ["-jar", backendJarPath]);
+      const backend = spawn("java", [
+        "-jar",
+        backendJarPath,
+        "--port",
+        port.toString(10),
+      ]);
 
       window.addEventListener("beforeunload", () => {
         backend.kill();

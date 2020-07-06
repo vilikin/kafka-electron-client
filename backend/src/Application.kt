@@ -2,7 +2,6 @@ package `in`.vilik
 
 import `in`.vilik.kafka.KafkaClient
 import `in`.vilik.model.*
-import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.features.CORS
 import io.ktor.http.HttpHeaders
@@ -16,6 +15,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.required
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import java.time.Duration
@@ -25,6 +27,10 @@ val kafkaClient = KafkaClient()
 
 @ExperimentalCoroutinesApi
 fun main(args: Array<String>) {
+  val parser = ArgParser("kafka-backend-client")
+  val port by parser.option(ArgType.Int).required()
+  parser.parse(args)
+
   Runtime.getRuntime().addShutdownHook(object : Thread() {
     override fun run() {
       println("Shutting down gracefully")
@@ -33,7 +39,7 @@ fun main(args: Array<String>) {
   })
 
   try {
-    embeddedServer(Netty, 37452) {
+    embeddedServer(Netty, port) {
       install(CORS) {
         anyHost()
         HttpMethod.DefaultMethods.forEach { method(it) }
