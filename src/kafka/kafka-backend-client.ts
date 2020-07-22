@@ -11,6 +11,7 @@ import {
 import {
   MessageFromClient,
   MessageFromClientType,
+  ProduceRecord,
   RequestConnect,
   RequestDisconnect,
   SubscribeToOffsetsOfConsumerGroup,
@@ -265,6 +266,17 @@ export class KafkaBackendClient {
     const message: UnsubscribeFromOffsetsOfTopic = {
       type: MessageFromClientType.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC,
       topic,
+    };
+
+    this.send(message);
+  }
+
+  public produceRecord(topic: string, key: string, value: string) {
+    const message: ProduceRecord = {
+      type: MessageFromClientType.PRODUCE_RECORD,
+      topic,
+      key,
+      value,
     };
 
     this.send(message);
