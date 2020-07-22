@@ -9,7 +9,6 @@ import { ConnectionStatus } from "../../overmind/connection/state";
 import {
   FaPlay,
   FaShareSquare,
-  FaTachometerAlt,
   FaAngleDoubleRight,
   FaStop,
 } from "react-icons/fa";
@@ -52,6 +51,10 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
     await kafka.unsubscribeFromRecordsOfTopic(topicName);
   }, [kafka, topicName]);
 
+  const openProduceDialog = useCallback(async () => {
+    kafka.produceRecord(topicName, "testkey", "testvalue");
+  }, [kafka, topicName]);
+
   const totalRecords = _.sumBy(
     topic.partitions,
     (partition) => partition.latestOffset ?? 0
@@ -87,11 +90,10 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
             onClick={startConsuming}
           />
         )}
-        <EnvironmentAwareButton text="Produce" Icon={FaShareSquare} disabled />
         <EnvironmentAwareButton
-          text="Monitor"
-          Icon={FaTachometerAlt}
-          disabled
+          text="Produce"
+          Icon={FaShareSquare}
+          onClick={openProduceDialog}
         />
         <EnvironmentAwareButton
           text="Seek"

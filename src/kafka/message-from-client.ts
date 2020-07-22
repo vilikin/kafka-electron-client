@@ -9,6 +9,7 @@ export enum MessageFromClientType {
   UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP = "UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP",
   SUBSCRIBE_TO_OFFSETS_OF_TOPIC = "SUBSCRIBE_TO_OFFSETS_OF_TOPIC",
   UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC = "UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC",
+  PRODUCE_RECORD = "PRODUCE_RECORD",
 }
 
 export interface RequestConnect {
@@ -54,6 +55,13 @@ export interface UnsubscribeFromOffsetsOfTopic {
   topic: string;
 }
 
+export interface ProduceRecord {
+  type: MessageFromClientType.PRODUCE_RECORD;
+  topic: string;
+  key: string;
+  value: string;
+}
+
 export type MessageFromClient =
   | RequestConnect
   | RequestDisconnect
@@ -62,4 +70,5 @@ export type MessageFromClient =
   | SubscribeToOffsetsOfConsumerGroup
   | UnsubscribeFromOffsetsOfConsumerGroup
   | SubscribeToOffsetsOfTopic
-  | UnsubscribeFromOffsetsOfTopic;
+  | UnsubscribeFromOffsetsOfTopic
+  | ProduceRecord;
