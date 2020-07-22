@@ -19,7 +19,8 @@ sealed class MessageFromClient(
     SUBSCRIBE_TO_OFFSETS_OF_CONSUMER_GROUP,
     UNSUBSCRIBE_FROM_OFFSETS_OF_CONSUMER_GROUP,
     SUBSCRIBE_TO_OFFSETS_OF_TOPIC,
-    UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC
+    UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC,
+    PRODUCE_RECORD
   }
 
   companion object {
@@ -51,6 +52,10 @@ sealed class MessageFromClient(
         .registerSubtype(
           UnsubscribeFromOffsetsOfTopic::class.java,
           Type.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC.name
+        )
+        .registerSubtype(
+          ProduceRecord::class.java,
+          Type.PRODUCE_RECORD.name
         )
 
       return GsonBuilder()
@@ -94,3 +99,9 @@ class SubscribeToOffsetsOfTopic(
 class UnsubscribeFromOffsetsOfTopic(
   val topic: String
 ) : MessageFromClient(Type.UNSUBSCRIBE_FROM_OFFSETS_OF_TOPIC)
+
+class ProduceRecord(
+  val topic: String,
+  val key: String,
+  val value: String
+) : MessageFromClient(Type.PRODUCE_RECORD)

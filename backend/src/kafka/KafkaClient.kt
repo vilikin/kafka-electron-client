@@ -10,6 +10,7 @@ import org.apache.kafka.clients.admin.KafkaAdminClient
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -216,6 +217,10 @@ class KafkaClient {
       connectedState.subscribedToOffsetsOfTopics.remove(topic)
       broadcast(UnsubscribedFromOffsetsOfTopic(topic))
     }
+  }
+
+  fun produceRecord(topic: String, key: String, value: String) {
+    (state as? KafkaClientStateConnected)?.producer?.send(ProducerRecord(topic, key, value))
   }
 
   private fun refreshTopics() {

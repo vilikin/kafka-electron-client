@@ -93,6 +93,11 @@ fun main(args: Array<String>) {
                     is UnsubscribeFromOffsetsOfTopic -> kafkaClient.unsubscribeFromOffsetsOfTopic(
                       messageFromClient.topic
                     )
+                    is ProduceRecord -> kafkaClient.produceRecord(
+                      messageFromClient.topic,
+                      messageFromClient.key,
+                      messageFromClient.value
+                    )
                   }
                 }
 
