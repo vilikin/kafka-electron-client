@@ -11,6 +11,7 @@ import { merge, namespaced } from "overmind/config";
 import * as environments from "./environments";
 import * as routing from "./routing";
 import * as connection from "./connection";
+import * as produceModal from "./produceModal";
 
 const onInitialize: OnInitialize = ({ actions, effects }, instance) => {
   effects.kafka.init({
@@ -49,7 +50,7 @@ export const config = merge(
     onInitialize,
     effects,
   },
-  namespaced({ environments, routing, connection })
+  namespaced({ environments, routing, connection, produceModal })
 );
 
 declare module "overmind" {
