@@ -8,6 +8,7 @@ import {
   PartitionOffsets,
 } from "../../kafka/message-from-server";
 import { BackendProcessLogEntry } from "../../kafka/kafka-backend-client";
+import { enrichRecord } from "../../util/kafka-record-enricher";
 
 export const connect: AsyncAction<string> = async (
   { state, actions, effects },
@@ -175,12 +176,17 @@ export const onRecordsReceived: Action<KafkaRecord[]> = (
   } = rootState;
 
   if (state.status === ConnectionStatus.CONNECTED_TO_ENVIRONMENT) {
+    const newTopics = _.cloneDeep(state.topics);
+
     records.forEach((record) => {
-      state.topics[record.topic].records = _.takeRight(
-        [...state.topics[record.topic].records, record],
+      const enrichedRecord = enrichRecord(record);
+      newTopics[record.topic].records = _.takeRight(
+        [...newTopics[record.topic].records, enrichedRecord],
         100
       );
     });
+
+    state.topics = newTopics;
   }
 };
 

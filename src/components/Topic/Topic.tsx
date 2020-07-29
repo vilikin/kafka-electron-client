@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { useEffects, useOvermindState } from "../../overmind";
+import { useActions, useEffects, useOvermindState } from "../../overmind";
 import { ConnectionStatus } from "../../overmind/connection/state";
 import {
   FaPlay,
@@ -22,6 +22,7 @@ export interface TopicProps {
 
 export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   const { connection } = useOvermindState();
+  const { toggleProduceModal } = useActions().produceModal;
   const { kafka } = useEffects();
   const recordsDiv = useRef<HTMLDivElement>(null);
 
@@ -52,8 +53,8 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
   }, [kafka, topicName]);
 
   const openProduceDialog = useCallback(async () => {
-    kafka.produceRecord(topicName, "testkey", "testvalue");
-  }, [kafka, topicName]);
+    toggleProduceModal(true);
+  }, [toggleProduceModal]);
 
   const totalRecords = _.sumBy(
     topic.partitions,
@@ -82,18 +83,21 @@ export const Topic: FunctionComponent<TopicProps> = ({ topicName }) => {
             text="Unsubscribe"
             Icon={FaStop}
             onClick={stopConsuming}
+            className="mr-2"
           />
         ) : (
           <EnvironmentAwareButton
             text="Subscribe"
             Icon={FaPlay}
             onClick={startConsuming}
+            className="mr-2"
           />
         )}
         <EnvironmentAwareButton
           text="Produce"
           Icon={FaShareSquare}
           onClick={openProduceDialog}
+          className="mr-2"
         />
         <EnvironmentAwareButton
           text="Seek"

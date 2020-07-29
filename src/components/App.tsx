@@ -7,6 +7,7 @@ import { ConnectionStatus } from "../overmind/connection/state";
 import { ConnectedView } from "./Views/ConnectedView";
 import { MainView } from "./Views/MainView";
 import { UnexpectedErrorView } from "./Views/UnexpectedErrorView";
+import { ProduceModal } from "./Topic/ProduceModal";
 
 const View: FunctionComponent = () => {
   const connectionState = useOvermindState().connection.state;
@@ -65,6 +66,7 @@ export const App: FunctionComponent = () => {
         <View />
       </div>
       <EnvironmentsModal />
+      <ProduceModal />
     </div>
   );
 };

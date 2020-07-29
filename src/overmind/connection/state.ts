@@ -20,11 +20,16 @@ export interface KafkaTopicPartitionState extends KafkaTopicPartition {
   latestOffset?: number;
 }
 
+export interface EnrichedKafkaRecord extends KafkaRecord {
+  keyHtml?: string;
+  valueHtml?: string;
+}
+
 export interface KafkaTopicState {
   id: string;
   isInternal: boolean;
   partitions: KafkaTopicPartitionState[];
-  records: KafkaRecord[];
+  records: EnrichedKafkaRecord[];
   consuming: boolean;
 }
 
