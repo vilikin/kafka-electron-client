@@ -17,7 +17,7 @@
     "lodash": "^4.17.19",
     "overmind": "^23.1.0",
     "overmind-react": "^24.1.0",
-    "prismjs": "^1.20.0",
+    "prismjs": "^1.23.0",
     "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
